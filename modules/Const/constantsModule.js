@@ -1,0 +1,1 @@
+export const roomDict={} // maybe read from db or file if rarely changes or getting sftp drop

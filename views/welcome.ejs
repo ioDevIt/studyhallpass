@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <link rel='icon' href='/favicon.ico?v=2'>
+</head>
+<body>
+    <header class="tc ph4 pv5">
+        <h1 class="f3 f2-m f1-l pv-3 fw2 black-90 mv3">‘Iolani Open House 2027</h1>
+        <h2 class="f5 f4-m f3-l fw2 black-50 mt0 lh-copy">
+          <% if(typeof(Glogin)!=='undefined' && Glogin){ %>   
+                <a href="/auth/google">G Login</a>
+          <% } %>
+          <% if(typeof(Vlogin)!=='undefined' && Vlogin){ %>   
+                <a href="/auth/veracross">Login</a>
+          <% } %>
+          <% if(typeof(logout)!=='undefined'){ %>   
+                <a href="/logout">Logout</a>
+          <% } %>
+        </h2>
+        <h2 class="f5 f4-m f3-l fw2 black-50 mt0 lh-copy">
+          <% if(typeof(message)!=='undefined'){ %>   
+                <%= message %>
+          <% } %>
+        </h2>
+    </header>      
+</body>
+</html>

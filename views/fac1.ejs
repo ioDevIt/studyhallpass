@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js" integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous"></script>
+    <!-- <script src="js/data.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
+    
+    <script>
+        const students=<%- JSON.stringify(displayStudents)  %>;
+        const studentsObj={}
+        const studentUpdateList=[]
+    </script>
+
+    <style>
+        #header1{
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: underline;
+        }
+
+        #header1a{
+            font-size: 1.5em;
+            /* font-weight: bold; */
+            text-align: center;
+            /* text-decoration: underline; */
+        }
+
+        #header2{
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #studentDiv{
+            position: relative;
+        }
+        
+        .containerStudentDivs {
+            font-size: 12px;
+            position:absolute;
+            border: 1px black solid;
+            border-radius: 5%;
+            text-align: center;
+            padding:5px;
+
+            background-color: aliceblue;
+        }
+
+        .in{
+            background-color: rgb(0,0,0,0.2);
+        }
+
+        .out{
+            background-color: rgb(255, 99, 71);
+        }
+
+        .onPass{
+            border: 3px solid green;
+        }
+
+        .status{
+            /* background-color: crimson; */
+        }
+
+        .btnSelected{
+            background-color: cadetblue;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="classIdDiv" hidden><%= classid %></div>
+    <input id="reasonTypeInput" hidden />
+    <div id="info">
+        <div id="header1"><%= className %></div>
+        <div id="header1a">(<%= classid %>)</div>
+        <div id="header2">Students Out(<span id="studentsOutText">0</span>)</div>
+        <div id="header2a">Scan students <input type="text" id="scanInput" placeholder="Scan Here"> 
+            <span id="reasonSpan">
+                <button id='bathroomBtn'>Bathroom</button>
+                <button id='passBtn'>Pass</button>
+                
+                <input id='outReasonInput' type="text" placeholder="Other Reason"/>
+                <button id='otherBtn'>Other</button>
+            </span>
+        </div>
+        <hr/>
+    </div>
+    <div id="studentDiv">
+        <!-- <div class="containerStudentDivs">
+             <div class="sname">A</div>
+             <div class="status">STATUS</div>
+        </div>
+
+        <div class="containerStudentDivs">
+             <div class="sname">This is A</div>
+             <div class="status">STATUS</div>
+        </div> -->
+    </div>
+    
+    <script>
+        // Set Student Obj
+        students.forEach((r)=>{
+            if(!(r.sid in studentsObj)){studentsObj[r.sid]=r}
+
+            if(r.timeOut!==null){studentUpdateList.push(r.sid)}
+        })
+    </script>
+    <script>
+        const panelW=window.innerWidth
+        const panelH=window.innerHeight
+
+        const inColor='rgb(0,0,0,0.2)'
+        const outColor='rgb(255, 99, 71)'
+        
+    </script>
+
+    <script>
+        const studentDiv = d3.select('#studentDiv')
+        const studentsOutText = document.getElementById('studentsOutText')
+        const scanInput = document.getElementById('scanInput')
+        const classIdDiv = document.getElementById('classIdDiv')
+
+        const bathroomBtn= document.getElementById('bathroomBtn')
+        const passBtn= document.getElementById('passBtn')
+        const outReasonInput= document.getElementById('outReasonInput')
+        const otherBtn= document.getElementById('otherBtn')
+
+        const studentIdRegEx = /^[23]\d{5}$/;
+
+        const dragHandler = d3.drag()
+        .on('start',()=>{console.log('test'); (dragstarted())})
+        .on('drag',dragged)
+        .on('end',dragended)
+
+        console.log('students',students)
+        const containerStudentDivs = studentDiv.selectAll('div.containerStudentDivs').data(students).join('div')
+                                    .attr('id',(d)=>(`${d.sid}_div`))
+                                    // .attr('class','containerStudentDivs')
+
+                                    // .attr('id',(d)=>(`${d.sid}_div`))
+                                    .attr('class',(d)=>{
+                                        let thisClass='containerStudentDivs '
+                                         if(d.userType==='F'){thisClass+= 'green'}
+                                        thisClass+= (d.status==='Out')?'out':'in'
+                                        thisClass+= (d.passHighlight)?' onPass':''
+
+                                        return thisClass
+                                    })
+
+                                    .style('top',(d,i)=>{return `${d.position.y}px`})
+                                    .style('left',(d,i)=>{return `${d.position.x}px`})
+                                    // .style('background-color',(d)=>{
+                                    //     if(d.userType==='F'){return "green"}
+                                    //     return d.status==='In'?inColor:outColor
+                                    // })
+                                    // .style('opacity',rgb(0,0,0,0.2))
+
+            containerStudentDivs.selectAll('.sname').data((d)=>{return [d]}).join('div')
+                .attr('class','sname').text((d)=>{return `${d.fname} ${d.lname}`})
+                .append('hr')
+                // .style('opacity',1)
+
+            containerStudentDivs.selectAll('.status').data((d,i)=>{return [d]}).join('div')
+                .attr('id',(d)=>{return `${d.sid}_status`}).attr('class','status').text((d)=>{return (d.status==='Out'?'Out':'In')})
+
+            containerStudentDivs.selectAll('.time').data((d,i)=>{return [d]}).join('div')
+                .attr('id',(d)=>{return `${d.sid}_time`}).attr('class','time')
+                // .text((d)=>{return (d.timeOut===null?'':dateFns.formatDistanceToNow(d.timeOut))})
+                .text((d)=>{return (d.outDisplay)})
+                
+                // .text((d)=>{return (d.status==='Out'?'Out':'In')})
+
+            console.log('containerStudentDivs',containerStudentDivs)
+
+            containerStudentDivs
+            // .on('click',()=>{console.log('test')})
+            .call(dragHandler)
+
+
+        const setDisplayStudentsOut = (totalStudentsOut)=>{
+            studentsOutText.textContent=totalStudentsOut
+            studentsOutText.style.color = (totalStudentsOut>0? outColor : inColor )
+        }
+
+        const setStudentsOut = ()=>{  
+            console.log('in setStudentsOut')    
+            const totalStudentsOut = students.reduce((acc,cur)=>{
+                return acc+(cur.status==='Out'?1:0)
+            },0)
+
+            console.log('totalStudentsOut',totalStudentsOut)
+            setDisplayStudentsOut(totalStudentsOut)
+        }
+
+        const setZeroPositions = () => {
+            let previousX = 0
+            let previousY = 0
+            let previousW=0
+            let previousH=0
+            const blockYMargin = 10
+
+            let maxY=0
+            let currentStudentsOut=0
+
+            const studentContainersArray = document.getElementsByClassName('containerStudentDivs')
+
+            for(let i=0;i<studentContainersArray.length;i++){
+
+                // console.log('studentContainersArray[i].style.top',studentContainersArray[i].style.top)
+                // console.log(studentContainersArray[i].offsetWidth,studentContainersArray[i].offsetHeight)
+
+                const clientRect= studentContainersArray[i].getBoundingClientRect()
+                // console.log('clientRect',clientRect)
+
+                // console.log('************')
+                // console.log(studentContainersArray[i].style.top)
+
+                if(studentContainersArray[i].style.top==='0px' && studentContainersArray[i].style.left==='0px'){
+                    studentContainersArray[i].style.top = `${previousY}px`
+                    studentContainersArray[i].style.left = `${previousX}px`
+
+                    if(studentContainersArray[i].offsetHeight>maxY){
+                        maxY = studentContainersArray[i].offsetHeight
+                    }
+
+                    // console.log('previousX+studentContainersArray[i].offsetWidth',previousX+studentContainersArray[i].offsetWidth)
+                    if((previousX+studentContainersArray[i].offsetWidth + studentContainersArray[i].offsetWidth)>panelW){
+                        previousX=0
+                        previousY+=maxY+blockYMargin
+                    }
+                    else{
+                        previousX+=studentContainersArray[i].offsetWidth
+                        // previousY+=studentContainersArray[i].offsetHeight
+                    }
+                }
+            }            
+        }
+
+
+        setZeroPositions()
+        setStudentsOut()
+
+        function dragstarted(event, d) {
+            console.log('Drag Started')
+            // console.log(event.x, event.y)
+            console.log(this)
+            console.log(event)
+            console.log(d)
+            return;
+            // Optional: Add styling or logic when drag starts
+            // d3.select(this).raise().classed("active", true);
+        }
+
+        function dragged(event, d) {
+            console.log('Dragged')
+            // Update data properties with new coordinates from the event
+
+            
+            console.log(d)
+            console.log(d.position.x, d.position.y)
+            console.log(event.x, event.y)
+
+            const newX=(d.position.x-event.x)
+            const newY=(d.position.y-event.y)
+
+            console.log(newX,newY)
+
+            const thisD3 = d3.select(this)
+            thisD3.style('top',`${event.y}px`) // `translate(${event.x},${event.y})`)
+            thisD3.style('left',`${event.x}px`)
+            // thisD3.style('top',`${event.y}px`)
+            return;
+
+            d.x = event.x;
+            d.y = event.y;
+            // Assume d.angle is a property on your data that holds the current rotation angle
+
+            // Update the transform attribute using both translate and rotate
+            // d3.select(this).attr("transform", "translate(" + 30+ "," + 68 + ") rotate(" + 15 + ")");
+            // d3.select(this).attr("transform", "translate(" + 0+ "," + -10 + ")");
+
+            console.log('this',this)
+
+            // const thisD3 = d3.select(this)
+            // const parentDOMElement = thisD3.node().parentNode
+            // const parentSelection = d3.select(parentDOMElement)
+
+            // parentSelection.attr('transform',`translate(${event.x},${event.y})`)
+            // console.log(`translate(${event.x},${event.y})`)
+        }
+
+        function dragended(event, d) {
+            console.log('Drag Ended')
+            console.log('event',event)
+
+            console.log(d)
+            console.log(d.position.x, d.position.y)
+            console.log(event.x, event.y)
+
+            const thisClassId = document.getElementById('header1a').textContent.replaceAll('(','').replaceAll(')','')
+            const dataToSend={sid:d.sid,classId:thisClassId,x:Math.round(event.x),y:Math.round(event.y)}
+
+            sendDragData(dataToSend)
+            return;
+            // Optional: Revert styling or perform final actions
+            // d3.select(this).classed("active", false);
+        }
+
+        const setOutTime=(thisStudentId,outDT)=>{
+            console.log('setOutTime',thisStudentId,outDT)
+            if(!studentUpdateList.includes(thisStudentId)){
+                studentUpdateList.push(thisStudentId)
+                studentsObj[thisStudentId].timeOut=outDT
+                // document.getElementById(`${thisStudentId}_time`).textContent=dateFns.formatDistanceToNow(studentsObj[r].timeOut)
+            }
+        }
+
+        const clearInTime=(thisStudentId)=>{
+            console.log('to remove',thisStudentId)
+            const studentAtPos=studentUpdateList.indexOf(thisStudentId)
+
+            console.log('studentAtPos',studentAtPos)
+
+            if(studentAtPos!==-1){
+                studentUpdateList.splice(studentAtPos,1)
+                studentsObj[thisStudentId].timeOut=null
+                document.getElementById(`${thisStudentId}_time`).textContent=''
+            }
+
+            console.log('studentUpdateList',studentUpdateList)
+        }
+
+        const updateTime=()=>{
+            studentUpdateList.forEach((r)=>{
+                // console.log(r)
+                // console.log(studentsObj[r])
+                // console.log('update ',`${r}_time`)
+                // console.log('studentsObj[r].timeOut', studentsObj[r].timeOut)
+                // console.log('dateFns',dateFns)
+                document.getElementById(`${r}_time`).textContent=dateFns.formatDistanceToNow(studentsObj[r].timeOut)
+            })
+        }
+
+        const sendDragData=(dataSend)=>{
+
+            console.log('dataSend',dataSend)
+
+            const rsConfig={headers:{"X-XSRF-TOKEN":'cxData'},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+
+            console.log(`Sending -------------${JSON.stringify(dataSend)}-------------`)
+            console.log(`-------------/api/ep_send_change-------------`)
+
+            axios.post('/ep/ep_setposition',{
+            dataSend
+            },rsConfig).then((rsp)=>{
+            console.log('rsp',rsp)
+            })
+            .catch((e)=>{console.log(e)})
+        }
+
+        const sendScanData=(scannedData)=>{
+            const currentStatusEl = document.getElementById(`${scanInput.value}_status`)
+
+            console.log('scannedData',scannedData)
+            // return
+
+            if(!(currentStatusEl)){console.log('No El');return}
+
+            const currentStatus = currentStatusEl.textContent
+            const dataSend = {scanid:scanInput.value,classId:classIdDiv.textContent
+                ,toStatus:scannedData.toStatus
+                // ,outType:scannedData.outType
+                ,outTypeText:scannedData.outTypeText
+                }
+
+            // ,toStatus:(currentStatus==='In'?'Out':'In')
+
+            console.log('thisScanData',dataSend)
+
+            const rsConfig={headers:{"X-XSRF-TOKEN":'cxData'},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+
+            console.log(`Sending -------------${JSON.stringify(dataSend)}-------------`)
+            // console.log(`-------------/api/ep_send_change-------------`)
+
+            axios.post('/ep/ep_setclassenrollmentstatus',{dataSend}
+            ,rsConfig).then((rsp)=>{
+            console.log('rsp',rsp)
+                const rspData = rsp.data
+                const updateInfo = rspData.rsp[0]
+                console.log('updateInfo',updateInfo)
+                
+                if(rspData.status==='Ok')
+                {
+                    const thisStudentEl = document.getElementById(`${updateInfo.scanid}_div`)
+                    const thisStudentStatusEl = document.getElementById(`${updateInfo.scanid}_status`)
+                    const thisStudentTimeEl = document.getElementById(`${updateInfo.scanid}_time`)           
+
+                    console.log(`${updateInfo.scanid}__status`)
+
+                    thisStudentStatusEl.textContent = updateInfo.status
+                    if(updateInfo.status==="Out"){
+                        thisStudentEl.classList.add('out')
+                        studentsOutText.textContent=((studentsOutText.textContent*1)+1)
+                        thisStudentTimeEl.textContent=`${updateInfo.outreason} ${updateInfo.outdtDisplay}`
+                    }else{
+                        thisStudentEl.classList.remove('out')
+                        studentsOutText.textContent=((studentsOutText.textContent*1)-1)
+                        thisStudentTimeEl.textContent=''
+                    }
+
+                    bathroomBtn.classList.remove('btnSelected')
+                    passBtn.classList.remove('btnSelected')
+                    otherBtn.classList.remove('btnSelected')
+                    reasonTypeInput.value=''
+                    outReasonInput.value=''
+                    scanInput.value=''
+                }
+            })
+            .catch((e)=>{console.log(e)})
+        }
+        
+
+        if(false){
+        const socket = io();
+
+        console.log('Set Socket','<%= classid %>')
+
+        socket.on('<%= classid %>',(msg)=>{
+          console.log('Check On Sender')
+          console.log(msg)
+          let newTotalOut=(studentsOutText.textContent*1)
+
+          if(msg.setTo==='In'){
+            document.getElementById(`${msg.studentId}_div`).classList.remove('out')
+            document.getElementById(`${msg.studentId}_div`).classList.add('in')       
+            clearInTime(msg.studentId)
+            newTotalOut--     
+          }
+          else{
+            document.getElementById(`${msg.studentId}_div`).classList.remove('in')
+            document.getElementById(`${msg.studentId}_div`).classList.add('out')
+            setOutTime(msg.studentId,msg.atDT)
+            newTotalOut++
+          }
+
+          document.getElementById(`${msg.studentId}_status`).textContent=(msg.setTo==='In'?'In':msg.reason)
+
+          setDisplayStudentsOut(newTotalOut)
+
+        //   document.getElementById(`${msg.studentId}_div`).classList.add()
+
+          // 312660_div
+        })
+
+}
+
+        console.log('studentsObj',studentsObj)
+        console.log('studentUpdateList',studentUpdateList)
+
+        const runScan = () =>{
+            if(scanInput.value.length===6 &&  studentIdRegEx.test(scanInput.value)){
+                const thisStudentEl = document.getElementById(`${scanInput.value}_status`)
+                console.log('Current Student Status ',thisStudentEl.textContent )
+                // if status of element is In then
+                const thisStudentStatus = thisStudentEl.textContent
+                if((thisStudentStatus==='In') && reasonTypeInput.value!==''){
+                    sendScanData({toStatus:'Out',outTypeText:(reasonTypeInput.value==='Other'?`${reasonTypeInput.value}: ${outReasonInput.value}`:reasonTypeInput.value)})
+                }
+                else if(thisStudentStatus==='Out'){
+                    sendScanData({toStatus:'In',outTypeText:''})
+                }                
+            }
+            else{
+                bathroomBtn.classList.remove('btnSelected')
+                passBtn.classList.remove('btnSelected')
+                otherBtn.classList.remove('btnSelected')
+                outReasonInput.value=''
+                reasonTypeInput.value=''
+            }
+        }
+        
+        
+        scanInput.addEventListener('input',()=>{            
+            runScan()
+        })
+
+
+        bathroomBtn.addEventListener('click',()=>{
+            bathroomBtn.classList.add('btnSelected')
+            passBtn.classList.remove('btnSelected')
+            otherBtn.classList.remove('btnSelected')
+            outReasonInput.value=''
+            reasonTypeInput.value='Bathroom'
+            runScan()
+        })
+
+        passBtn.addEventListener('click',()=>{
+            passBtn.classList.add('btnSelected')
+            bathroomBtn.classList.remove('btnSelected')
+            otherBtn.classList.remove('btnSelected')
+            outReasonInput.value=''
+            reasonTypeInput.value='Pass'
+            runScan()
+        })
+
+        otherBtn.addEventListener('click',()=>{
+            otherBtn.classList.add('btnSelected')
+            bathroomBtn.classList.remove('btnSelected')
+            passBtn.classList.remove('btnSelected')            
+            reasonTypeInput.value='Other'
+            runScan()
+        })
+
+        outReasonInput.addEventListener('input',()=>{
+            if(outReasonInput.value.length>4){
+                otherBtn.classList.add('btnSelected')
+                reasonTypeInput.value='Other'
+                // runScan()
+            }
+            else
+            {
+                reasonTypeInput.value=''
+                otherBtn.classList.remove('btnSelected')
+            }
+
+            bathroomBtn.classList.remove('btnSelected')
+            passBtn.classList.remove('btnSelected')
+        })
+
+        // setInterval(updateTime,1000)
+        // updateTime()
+
+        /********* test **************/
+        // const testId = document.getElementById('301075_time')
+
+        // testId.textContent="Bathroom adfafae  aer - 9:30"
+    </script>
+</body>
+</html>

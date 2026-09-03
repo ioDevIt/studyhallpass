@@ -1,0 +1,200 @@
+CREATE DATABASE n_b;
+
+CREATE ROLE i_r PASSWORD 'E1';
+ALTER ROLE i_r WITH LOGIN;
+
+GRANT CONNECT ON DATABASE n_b TO i_r;
+
+SET TIME ZONE 'Pacific/Honolulu';
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    uid VARCHAR(25) NOT NULL,
+    fname VARCHAR (50) DEFAULT '',
+    lname VARCHAR (50) DEFAULT '',
+    grade VARCHAR (2) DEFAULT '',
+    is_active boolean DEFAULT true NOT NULL,
+    bywho VARCHAR(25),
+    createddatetime timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updatedatetime timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    roleid character varying(25) UNIQUE,
+    name VARCHAR(50) NOT NULL,
+    type character varying(25),
+    description character varying(50) NOT NULL,
+    url_entry character varying(250) NOT NULL, 
+    is_active boolean DEFAULT true NOT NULL,
+    bywho character varying(25),
+    createddatetime timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE TABLE users_roles (
+    id SERIAL PRIMARY KEY,
+    uid character varying(25) NOT NULL,
+    roleid character varying(25),
+    is_active boolean DEFAULT true NOT NULL,
+    bywho character varying(25),
+    createddatetime timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UNIQUE (uid,roleid)
+);
+
+
+CREATE TABLE logs (
+    id SERIAL PRIMARY KEY,
+    action VARCHAR(50) DEFAULT '' NOT NULL,
+    value VARCHAR(255) DEFAULT '' NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    bywho VARCHAR(25),
+    createddatetime timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updatedatetime timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE TABLE classes (
+    id SERIAL PRIMARY KEY,
+    clint INT NOT NULL,
+    classid VARCHAR(25) NOT NULL UNIQUE,
+    name VARCHAR (150) DEFAULT '',
+    period VARCHAR(3) NOT NULL,
+    term VARCHAR (4) NOT NULL,
+    room VARCHAR(50) NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    bywho VARCHAR(25),
+    createddatetime timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updatedatetime timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE TABLE class_enrollment (
+    id SERIAL PRIMARY KEY,
+    classid VARCHAR(25) NOT NULL,
+    sid VARCHAR(25) NOT NULL,
+    status VARCHAR (3) DEFAULT 'In',
+    out_time TIMESTAMPTZ,
+    in_time TIMESTAMPTZ,
+    outreason VARCHAR(25),
+    positionx INTEGER DEFAULT 0,
+    positiony INTEGER DEFAULT 0,
+    is_active boolean DEFAULT true NOT NULL,
+    bywho VARCHAR(25),
+    createddatetime timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updatedatetime timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE TABLE facstudents (
+    id SERIAL PRIMARY KEY,
+    pid INTEGER NOT NULL,
+    sid VARCHAR(25) NOT NULL,
+    fname VARCHAR (50) DEFAULT '',
+    pname VARCHAR (50) DEFAULT '',
+    lname VARCHAR (50) DEFAULT '',
+    grade VARCHAR (2) DEFAULT '',
+    -- email VARCHAR (75) DEFAULT '', -- grab from api instead of storing
+    type VARCHAR (1) DEFAULT 'S' NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    bywho VARCHAR(25),
+    createddatetime timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updatedatetime timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE TABLE pass_ticket (
+    id SERIAL PRIMARY KEY,
+    classid VARCHAR(25) NOT NULL,
+    sid VARCHAR(25) NOT NULL,
+    duration VARCHAR(2) NOT NULL DEFAULT 'ALL',
+    at_date DATE NOT NULL,
+    at_time TIME,
+    on_period VARCHAR (2) NOT NULL,
+    report_to VARCHAR (50) NOT NULL,
+    reason VARCHAR (150) NOT NULL,
+    requestor VARCHAR(100) NOT NULL,
+    requestor_signed  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    status VARCHAR (3) DEFAULT '',
+    out_dt TIMESTAMPTZ,
+    in_dt TIMESTAMPTZ,
+    receiver VARCHAR(100),
+    receiver_signed TIMESTAMPTZ,
+    need_review BOOL DEFAUlT false NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    bywho VARCHAR(25),
+    createddatetime timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updatedatetime timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+GRANT INSERT, SELECT, UPDATE ON users TO iocheker;
+GRANT USAGE, SELECT ON SEQUENCE users_id_seq TO iocheker;
+
+GRANT INSERT, SELECT, UPDATE ON roles TO iocheker;
+GRANT USAGE, SELECT ON SEQUENCE roles_id_seq TO iocheker;
+
+GRANT INSERT, SELECT, UPDATE ON users_roles TO iocheker;
+GRANT USAGE, SELECT ON SEQUENCE users_roles_id_seq TO iocheker;
+
+GRANT INSERT, SELECT, UPDATE ON logs TO iocheker;
+GRANT USAGE, SELECT ON SEQUENCE logs_id_seq TO iocheker;
+
+GRANT INSERT, SELECT, UPDATE ON facstudents TO iocheker;
+GRANT USAGE, SELECT ON SEQUENCE facstudents_id_seq TO iocheker;
+
+GRANT INSERT, SELECT, UPDATE ON classes TO iocheker;
+GRANT USAGE, SELECT ON SEQUENCE classes_id_seq TO iocheker;
+
+GRANT INSERT, SELECT, UPDATE ON class_enrollment TO iocheker;
+GRANT USAGE, SELECT ON SEQUENCE class_enrollment_id_seq TO iocheker;
+
+GRANT INSERT, SELECT, UPDATE ON pass_ticket TO iocheker;
+GRANT USAGE, SELECT ON SEQUENCE pass_ticket_id_seq TO iocheker;
+
+CREATE VIEW v_rbac AS 
+SELECT ur.id, u.uid, u.fname, u.lname, r.roleid, r.url_entry, r.type general_type, r.description description 
+FROM users u JOIN users_roles ur ON u.uid = ur.uid AND u.uid = ur.uid 
+JOIN roles r ON ur.roleid = r.roleid
+WHERE u.is_active AND r.is_active AND ur.is_active
+;
+
+GRANT SELECT ON v_rbac TO iocheker;
+
+
+INSERT INTO users (uid, fname,lname,bywho) VALUES
+('syamashiro@iolani.org','Steven','Yamashiro','syamashiro@iolani.org'),
+('sweaver@iolani.org','Scott','Weaver','syamashiro@iolani.org'),
+('jpapayoanou@iolani.org','Scott','Weaver','syamashiro@iolani.org')
+;
+
+INSERT INTO roles (roleid, name, description, type, url_entry,bywho) VALUES
+('ADMIN','Admin','Admin','ADMIN','','syamashiro@iolani.org'),
+('PASSER','Passer','Passer','PASSER','/studyhall','syamashiro@iolani.org')
+;
+
+INSERT INTO users_roles (uid, roleid,bywho) VALUES
+('syamashiro@iolani.org','ADMIN','syamashiro@iolani.org'),
+('syamashiro@iolani.org','PASSER','syamashiro@iolani.org'),
+('sweaver@iolani.org','ADMIN','syamashiro@iolani.org'),
+('jpapayoanou@iolani.org','ADMIN','syamashiro@iolani.org')
+;
+
+// EXPLAIN ANALYZE
+
+
+CREATE VIEW v_class_enrollment_pass_info AS
+SELECT cl.clint,cl.classid,cl.name,cl.period,cl.term,cl.room
+,ce.sid, ce.status ce_status, ce.out_time, ce.in_time, ce.outreason, ce.positionx, ce.positiony
+,stud.id stud_id,stud.pid, stud.fname, stud.pname, stud.lname, stud.grade
+,pt.id pt_id,pt.duration,pt.at_date,pt.at_time,pt.on_period,pt.report_to,pt.reason,pt.requestor,pt.requestor_signed,pt.status pt_status,pt.out_dt,pt.in_dt,pt.receiver,pt.receiver_signed,pt.need_review,pt.bywho pt_bywho,pt.createddatetime pt_createddatetime
+FROM classes cl JOIN class_enrollment ce ON cl.classid = ce.classid JOIN facstudents stud ON ce.sid = stud.sid LEFT OUTER JOIN pass_ticket pt ON ce.classid = pt.classid AND ce.sid = pt.sid  AND pt.is_active
+WHERE cl.is_active AND ce.is_active AND stud.is_active
+;
+
+CREATE VIEW v_class_enrollment AS
+SELECT cl.clint,cl.classid,cl.name,cl.period,cl.term,cl.room
+,ce.sid, ce.status ce_status, ce.out_time, ce.in_time, ce.outreason, ce.positionx, ce.positiony
+,stud.id stud_id,stud.pid, stud.fname, stud.pname, stud.lname, stud.grade
+FROM classes cl JOIN class_enrollment ce ON cl.classid = ce.classid JOIN facstudents stud ON ce.sid = stud.sid 
+WHERE cl.is_active AND ce.is_active AND stud.is_active
+;
+
+
+GRANT SELECT ON v_class_enrollment_pass_info TO iocheker;
+GRANT SELECT ON v_class_enrollment TO iocheker;

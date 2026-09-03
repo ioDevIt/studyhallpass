@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+</head>
+<body>
+
+    <div class="cf">
+    <div class="fl w-5 w-10-ns tc pv5 bg-black-05"></div>
+    <div class="fl w-100 w-80-ns tc pv5">
+        <header class="bg-white black-80 tc pv4 avenir">
+            <h1 class="mt2 mb0 baskerville i fw1 f1"><%= title %></h1>
+            <h2 class="mt2 mb0 f6 fw4 ttu tracked"><%= subtitle %></h2>
+            <nav class="bt bb tc center mt4">
+                <!-- <% menus.forEach((r)=>{  %>
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" href="<%= r.url %>"><%= r.name %></a>
+                <% }) %> -->
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" onclick="goURL('/createPass')">Create Pass</a>
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" onclick="goURL('/viewPassesTodayFac')">View Todays Passes For My Students</a>
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" onclick="goURL('/viewPassesToday')">View Todays Passes</a>
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" onclick="goURL('/viewPasses')">View All Passes</a>
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-light-yellow dib pa3 ph4-l" href="/logout">Logout</a>
+            </nav>
+        </header>
+
+        <div class="cf">
+                <% menus.forEach((r)=>{  %>                    
+                    <article class="mw5 bg-white br3 pa3 pa4-ns mv3 ba b--black-10 fl">
+                        <div class="tc" onclick="goURL('<%= r.url %>')">
+                            <h1 class="f4"><%= r.name %></h1>
+                            <hr class="mw3 bb bw1 b--black-10">
+                        </div>
+                        <p class="lh-copy measure center f6 black-70"><%= r.description %>
+                        </p>
+                    </article>
+                 <% }) %>
+        </div>
+
+    </div>
+    <div class="fl w-5 w-10-ns tc pv5 bg-black-05"></div>
+    </div>
+
+    <script>
+        const goURL=(thisURL)=>{
+            window.open(thisURL,'_blank')
+        }
+    </script>
+</body>
+</html>

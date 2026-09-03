@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+    <script src="/js/tools.js"></script>
+
+    <script>
+        let cxData = <%- JSON.stringify(csrfToken) %>;
+        let roleTypesObj = <%- JSON.stringify(roleTypesObj) %>;
+    </script>
+
+    <style>
+        .addIcon {
+            fill: red;
+        }
+    </style>
+</head>
+<body>
+    <header class="bg-white black-80 tc pv4 avenir">
+        <h1 class="mt2 mb0 baskerville i fw1 f1">Access</h1>
+        <h2 class="mt2 mb0 f6 fw4 ttu tracked">Lists</h2>
+        <nav class="bt bb tc mw7 center mt4">
+            <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" href="/access">Main Access</a>
+            <% data.roles.forEach((r)=>{  %>
+                <a class="f6 f5-l link bg-animate black-80 hover-bg-light-pink dib pa3 ph4-l" href="/access/roles/<%=r%>"><%= r %></a>
+            <% }) %>
+
+            <% data.generalRoles.forEach((r)=>{  %>
+                <a class="f6 f5-l link bg-animate black-80 hover-bg-light-pink dib pa3 ph4-l" href="/access/generalroles/<%=r%>"><%= r %></a>
+            <% }) %>
+        </nav>
+    </header>
+
+    <svg width="0" height="0" style="position:absolute;">
+        <defs>
+            <symbol id="deleteIcon" viewBox="0 -960 960 960">
+                <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/>
+                <!-- <path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/> -->
+            </symbol>
+
+            <symbol id="addIcon" viewBox="0 -960 960 960">
+                <path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/>
+            </symbol>
+        
+            <symbol id="editIcon" viewBox="0 -960 960 960" fill="#1f1f1f">
+            <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
+            </symbol>
+
+            <symbol id="saveIcon" viewBox="0 -960 960 960">
+                <path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z"/>
+            </symbol>
+        </defs>
+    </svg>
+
+    <div class="cf">
+        <div class="fl w-10 tc pv5"></div>
+
+        <div class="fl w-80 tc pv5">
+            <div class="">
+                <div class="overflow-auto">
+                    <a id="addNewUserBtn" class="f6 link dim br3 ba ph3 pv2 mb2 dib light-purple"  onclick="addNewUserBtnClicked()">Add User</a>
+                    <input id="newEditIdInput"  name="newEditIdInput" hidden />
+
+                    <table class="f6 w-100 mw8 center" cellspacing="0">
+                    <thead>
+                        <tr class="stripe-dark">
+                        <th class="fw6 tl pa3 bg-white">User</th>
+                        <th class="fw6 tl pa3 bg-white">Role</th>
+                        <th class="fw6 tl pa3 bg-white"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="lh-copy">
+                            <tr id="newEditRow" class="stripe-dark">
+                            <td class="pa3 tl"><input id="newEditNameInput"  name="newEditNameInput" class="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" type="text" /></td>
+                            <td class="pa3 tl">
+                                <select id="newRoleIdSelect" class="pa2 input-reset ba bg-transparent hover-bg-black hover-white w-100" >
+                                        <% roleTypes.forEach((r)=>{  %>
+                                            <option value="<%= r %>"><%= r %></option>
+                                        <% }) %>
+                                </select>
+                            </td>
+                            <td class="pa3 tl">                                
+                                <a id="saveWrap" onclick="saveData()"><svg height="24px" width="24px"><use href="#saveIcon"></use></svg></a>
+                            </td>
+                            </tr>
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <hr />
+            <div class="">
+                <div class="overflow-auto">
+                    <table class="f6 w-100 mw8 center" cellspacing="0">
+                    <thead>
+                        <tr class="stripe-dark">
+                        <th class="fw6 tl pa3 bg-white">User</th>
+                        <th class="fw6 tl pa3 bg-white">Role</th>
+                        <th class="fw6 tl pa3 bg-white">General Role</th>
+                        <th class="fw6 tl pa3 bg-white">Description</th>
+                        <th class="fw6 tl pa3 bg-white">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accessTBody" class="lh-copy">
+                        <% data.list.forEach((r)=>{ let thisId=`${r.id}-${r.uid}` %> 
+                            <tr id="<%= thisId %>" class="stripe-dark">
+                            <td class="pa3 tl"><a class="f6 f5-l link bg-animate black-80 hover-bg-light-pink dib pa3 ph4-l username" href="/access/user/<%=r.uid %>"><%= r.uid %></a></td>
+                            <td class="pa3 tl editable userrole"><%= r.roleid %></td>
+                            <td class="pa3 tl editable generalrole"><%= r.general_type %></td>
+                            <td class="pa3 tl editable roledescription"><%= r.description %></td>
+                            <td class="pa3 tl">                            
+                            <svg height="24px" width="24px" onclick="deleteBtnClicked('<%= thisId %>')"><use href="#deleteIcon"></use></svg>
+                            <svg class="editIcon" height="24px" width="24px" onclick="editBtnClicked('<%= thisId+'-'+r.roleid %>')"><use href="#editIcon"></use></svg>                               
+                            </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="fl w-10 tc pv5"></div>
+    </div>
+
+    <script>
+        const addNewUserBtn = document.getElementById('addNewUserBtn')
+        const newEditIdInput = document.getElementById('newEditIdInput')        
+        const newEditNameInput = document.getElementById('newEditNameInput')
+        const newRoleIdSelect = document.getElementById('newRoleIdSelect')
+        const saveIcon = document.getElementById('saveIcon')
+        const accessTBody = document.getElementById('accessTBody')
+
+        const toggleInputBox =(thisEl, action)=>{
+            if(action==="E"){
+                thisEl.disabled=false;
+            }
+            else
+            {
+                thisEl.disabled=true;
+            }
+        }
+
+        const addNewUserBtnClicked=(e)=>{
+            newEditIdInput.value=""
+            newEditNameInput.value=""
+            newRoleIdSelect.value=""
+
+            // e.preventDefault()
+
+            /********************************/
+            // set newEditNameInput to editable
+            // clear newEditNameInput
+            // clear newEditIdInput
+
+            toggleInputBox(newEditNameInput,"E")
+        }
+
+        const editBtnClicked=(thisId)=>{
+            console.log(thisId)
+            const thisIdArray = thisId.split('-')
+
+            newEditIdInput.value=thisId
+            newEditNameInput.value=thisIdArray[1]
+            // newEditRoleInput.value=thisIdArray[1]
+
+            /********************************/
+            // set newEditNameInput to non-editable
+            // set Role Value to current value
+
+            console.log('thisIdArray',thisIdArray)
+            toggleInputBox(newEditNameInput,"NE")
+            newRoleIdSelect.value=thisIdArray[2]
+        }
+
+        const deleteBtnClicked=(thisId)=>{
+            console.log('Delete',thisId)
+            const thisEl = document.getElementById(thisId)
+            setAEDRBAC({id: thisId, new:newEditNameInput.value,action:'D'},()=>{
+                thisEl.remove()
+            })            
+        }
+
+        // const newEl=(elInfo)=>{         
+        //     const svgEls = ["svg","use"]   
+
+        //     const thisNewEl=(svgEls.includes(elInfo.type)?document.createElementNS('http://www.w3.org/2000/svg',elInfo.type):document.createElement(elInfo.type))
+        //     if('classList' in elInfo){thisNewEl.classList.add(...(elInfo.classList.split(' ')))}
+        //     if('text' in elInfo){thisNewEl.textContent=elInfo.text}
+        //     if('id' in elInfo){thisNewEl.id=elInfo.id}
+        //     if('height' in elInfo){thisNewEl.setAttribute('height',elInfo.height)}
+        //     if('width' in elInfo){thisNewEl.setAttribute('width',elInfo.width)}            
+        //     if('onclick' in elInfo){thisNewEl.setAttribute('onclick',elInfo.onclick)}     
+        //     if('href' in elInfo){thisNewEl.setAttribute('href',elInfo.href)}  
+
+        //     return thisNewEl
+        // }
+
+        const deleteSVG=(thisId)=>{
+            const thisUse=newEl({type:'use',href:'#deleteIcon'})
+            const thisSVG=newEl({type:'svg', height:"24px", width:"24px", onclick:"deleteBtnClicked('"+ thisId +"')"})            
+            thisSVG.append(thisUse)
+
+            return thisSVG            
+        }
+
+        const editSVG=(thisId)=>{
+            const thisUse=newEl({type:'use',href:'#editIcon'})
+            const thisSVG=newEl({type:'svg', height:"24px", width:"24px", onclick:"editBtnClicked('"+ thisId +"')"})            
+            thisSVG.append(thisUse)
+            
+            return thisSVG            
+        }
+
+        const addedData=(thisData)=>{
+            let thisId=`${thisData.id}-${thisData.uid}`
+
+            const tr = newEl({type:'tr',id:thisId,classList:'stripe-dark'})
+            const userEl = newEl({type:"td",classList:"pa3 tl"})
+            const thisAnc= newEl({type:"a",classList:"f6 f5-l link bg-animate black-80 hover-bg-light-pink dib pa3 ph4-l username",text:thisData.uid})
+
+            userEl.append(thisAnc)
+            tr.append(userEl)
+
+            tr.append(newEl({type:"td",classList:"pa3 tl editable userrole",text:thisData.roleid}))
+            tr.append(newEl({type:"td",classList:"pa3 tl editable generalrole",text:thisData.general_type}))
+            tr.append(newEl({type:"td",classList:"pa3 tl editable roledescription",text:thisData.description}))
+
+            const thisSVGDeleteElTD = newEl({type:"td",classList:"pa3 tl"})
+            thisSVGDeleteElTD.append(deleteSVG(thisId))
+            thisSVGDeleteElTD.append(editSVG(thisId+'-'+thisData.roleid))
+            tr.append(thisSVGDeleteElTD)
+            
+            accessTBody.append(tr)
+        }
+
+        const editedData=(thisRowId, newRoleInfo)=>{
+            const thisEl = document.getElementById(thisRowId)
+            const theseEditableEls = thisEl.querySelectorAll(':scope>.editable')
+
+            for(let i=0;i<theseEditableEls.length;i++){
+                if(theseEditableEls[i].classList.contains('userrole')){theseEditableEls[i].textContent=newRoleInfo.roleid}
+                if(theseEditableEls[i].classList.contains('generalrole')){theseEditableEls[i].textContent=newRoleInfo.type}
+                if(theseEditableEls[i].classList.contains('roledescription')){theseEditableEls[i].textContent=newRoleInfo.description}
+            }
+        }
+
+        const saveData=()=>{
+            console.log(`newEditNameInput.value = ${newEditNameInput.value}, newEditNameInput.value = ${newEditNameInput.value}, newRoleIdSelect.value = ${newRoleIdSelect.value}`)
+            if(newEditIdInput.value!=="" && newEditNameInput.value!=="" && newRoleIdSelect.value!==""){
+                // Edit
+                // After sending to db to edit run editedData as an anonymous function
+
+                setAEDRBAC({new:{id:newEditIdInput.value,newRole: newRoleIdSelect.value},action:'E'},(resp)=>{
+                        const newRowId= resp.data.dataBack.id
+                        const newRoleId= resp.data.dataBack.roleid
+                        const newUserName = resp.data.dataBack.username
+
+                        // editedData(rowId,roleTypesObj[newRoleIdSelect.value])
+                        console.log('Will edit',newRowId)        
+                        console.log('resp',resp)
+                        // editedData(`${newRowId}-${newUserName}`,newRow)
+                        editedData(`${newRowId}-${newUserName}`,roleTypesObj[newRoleId])
+                    })  
+
+            } else if(newEditNameInput.value!=="" && newRoleIdSelect.value!==""){
+                // Add
+                const newData={id:'none',newName:newEditNameInput.value, newRole: newRoleIdSelect.value}
+                console.log('Will add',newEditIdInput)
+                setAEDRBAC({new:newData,action:'A'},(resp)=>{                        
+                        console.log('Added')
+                        console.log('resp',resp)
+
+                        addedData(resp.data.dataBack[0])
+                    })      
+            } 
+        }
+    </script>
+
+    <script>
+            /************ Work on  *********************************/
+          function setAEDRBAC(setData,onSucFn) {
+            console.log(setData)
+
+            const rsConfig={headers:{"X-XSRF-TOKEN":cxData},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+
+            axios.post('/ep/aedRBAC',{
+              search:setData
+            },rsConfig).then((rsp)=>{
+                let thisStatus=rsp.status
+                console.log('in client Status',thisStatus)
+                onSucFn(rsp)
+              return;
+            })
+            .catch((e)=>{console.log(e)})
+          }
+    </script>
+</body>
+</html>

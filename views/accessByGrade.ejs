@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+</head>
+<body>
+    <input type="text" name="postid" value="<%= postid %>" hidden/>
+    <header class="bg-white black-80 tc pv4 avenir">
+    <h1 class="mt2 mb0 baskerville i fw1 f1">Access</h1>
+    <h2 class="mt2 mb0 f6 fw4 ttu tracked">Grade Level Access</h2>
+    <nav class="bt bb tc mw7 center mt4">
+        <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" href="/">Home</a>
+        <a class="f6 f5-l link bg-animate black-80 hover-bg-light-green dib pa3 ph4-l" href="/logout">Logout</a>
+    </nav>
+    </header>
+
+    <div class="pa4">
+        <div class="overflow-auto">
+            <table class="f6 w-100 mw8 center" cellspacing="0">
+            <thead>
+                <tr class="stripe-dark">
+                <th class="fw6 tl pa3 bg-white">Grade</th>
+                <th class="fw6 tl pa3 bg-white">Access</th>
+                </tr>
+            </thead>
+            <tbody class="lh-copy">
+                <% data.forEach ((r)=>{ %>
+                <tr class="stripe-dark">
+                <td class="pa3">Rising <%= ((r.grade*1) + 1) %></td>
+                <td class="pa3"><a class="f6 link dim br2 ba ph3 pv2 mb2 dib <%= (r.is_allow?' white bg-hot-pink':' hot-pink') %>" href="" onclick="event.preventDefault(); setAccess(this); return false" data-grade="<%= r.grade %>" 
+                    data-status=<%= r.is_allow %>><%= (r.is_allow?'Access':'No Access') %></a></td>
+                </tr>
+                <% }) %>
+            </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const setAccess=(el)=>{
+            console.log(el.id,el.dataset.grade,el.dataset.status)
+
+            setAccessAx({grade:el.dataset.grade,value:!(el.dataset.status==='true')},el,setElStatus)
+        }
+
+        const access12 = document.getElementById('access12')
+
+        const setElStatus=(thisEl, thisStatus)=>{
+            console.log('thisStatus',thisStatus)
+            if(thisStatus.is_allow){
+                thisEl.textContent='Access'
+                thisEl.dataset.status = thisStatus.is_allow
+                thisEl.classList.add('white','bg-hot-pink')
+                thisEl.classList.remove('hot-pink')
+            }
+            else{
+                thisEl.textContent='No Access'
+                thisEl.dataset.status = thisStatus.is_allow
+                thisEl.classList.add('hot-pink')
+                thisEl.classList.remove('white','bg-hot-pink')
+            }
+        }
+    </script>
+
+    <script>
+            /************ Work on  *********************************/
+          function setAccessAx(setData,thisEl,onSucFn) {
+            console.log('setData',setData)
+
+            const rsConfig={headers:{"X-XSRF-TOKEN":'cxData'},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+
+            axios.post('/access/setgradeaccess',{
+              data:setData
+            },rsConfig).then((rsp)=>{
+                let thisRSPData=rsp.data
+                console.log('in client Status',thisRSPData)
+                onSucFn(thisEl,thisRSPData)
+                // onSucFn(rsp)
+              return;
+            })
+            .catch((e)=>{console.log(e)})
+          }
+    </script>
+
+</body>
+</html>
