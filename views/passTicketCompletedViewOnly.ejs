@@ -68,19 +68,17 @@
     
     <div class="container mt-3">
         <div class="h2 text-center">ʻIOLANI SCHOOL STUDY HALL EXCUSE</div>
-        <div class="h2 text-center">(Closed)</div>
+        <div class="h2 text-center"><%= subtitle %></div>
         <form class="row g-3 mt-3">
             <div class="">
-            Please excuse <input id="nameTxt" class="form-select form-select-sm text-danger w-auto d-inline-block" aria-describedby="name-desc"  list="nameTxtList" placeholder="LastName, FirstName" type="text" name="nameTxt" value="" disabled>
+            Please excuse <input id="nameTxt" class="form-select form-select-sm text-danger w-auto d-inline-block" aria-describedby="name-desc"  list="nameTxtList" placeholder="LastName, FirstName" type="text" name="nameTxt" value="<%= data.nameDisplay %>" disabled>
             <datalist id="nameTxtList"></datalist>
                 , grade <span id="gradeSpan" class="text-danger"><%= data.grade %></span>,
-
 
                 on <input id="toReportOnDate" type="date" class="form-control text-danger w-auto d-inline-block" value=<%= data.displayAtDate %> disabled />
                 <!-- period <input id="atPeriodSpan"  class="form-control form-control-sm text-danger w-auto d-inline-block" placeholder="Select Period From Table" /> -->
                 Period <span id="atPeriodSpan" class="text-danger"><%= data.on_period %></span><span id="atClintRecId" hidden></span>
                 Study Hall
-
 
     <div class="d-flex align-items-center gap-2 flex-wrap">
         <fieldset class="border border-secondary rounded p-3 w-30">

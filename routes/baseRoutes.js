@@ -10,7 +10,9 @@
  
  import {setMenu} from '../modules/menuModule.js'
  import {setClassPage,selectNameForPass,getStudyHallsForThisStudentOnThisDate,addNewPass,viewToCompletePass,viewToEditPass
-        ,closePass} from '../modules/studyHallModule.js'
+        ,viewPassReadOnly
+        ,closePass,updatePass,getOpenPasses,deletePass
+        ,testSendMail} from '../modules/studyHallModule.js'
 
 import {insertLog,insertLogAsync,trace,traceObj} from '../modules/Mules/logsModule.js'
 import {encrypt,decrypt,decryptData} from '../modules/Mules/cryptdecrypt.js'
@@ -48,6 +50,10 @@ router.get('/createPass',(req,res)=>{
     res.render('passTicket',{title:'',subtitle:'',userName:req.user.email})
 })
 
+router.get('/viewPass/:pt_id',(req,res)=>{
+    viewPassReadOnly(req,res,req.params.pt_id)
+})
+
 router.get('/completePass/:pt_id',(req,res)=>{
     viewToCompletePass(req,res,req.params.pt_id)
 })
@@ -55,6 +61,30 @@ router.get('/completePass/:pt_id',(req,res)=>{
 router.get('/editPass/:pt_id',(req,res)=>{
     viewToEditPass(req,res,req.params.pt_id)
 })
+
+router.get('/listmystudentspassestoday',(req,res)=>{
+    console.log('req.user.gates.clint',req.user.gates.clint)
+    getOpenPasses(req,res,"My Student's Passes For Today",true,[{type:'whereIn',field:'clint',value:req.user.gates.clint}])
+})
+
+router.get('/listmystudentspasses',(req,res)=>{
+    console.log('req.user.gates.clint',req.user.gates.clint)
+    getOpenPasses(req,res,"My Student's Passes",false,[{type:'whereIn',field:'clint',value:req.user.gates.clint}])
+})
+
+router.get('/listmypasses',(req,res)=>{
+    getOpenPasses(req,res,"My Passes",false,[{type:'where',value:{requestor:req.user.email}}])
+})
+
+router.get('/listtodays',(req,res)=>{
+    getOpenPasses(req,res,"Today's Passes",true,[])
+})
+
+router.get('/listall',(req,res)=>{
+    getOpenPasses(req,res,"OPEN PASSES",false,[])
+})
+
+
 
 router.post('/getPassStudentList',(req,res)=>{
     console.log(req.body.search)
@@ -82,9 +112,25 @@ router.post('/newPass',(req,res)=>{
 router.post('/closePassTicket',(req,res)=>{
     console.log('----------------------')
     console.log(req.body)
+    
     closePass(req,res,req.body.packageData)
-    // getStudyHallsForThisStudentOnThisDate(req,res,{thisDate,thisStudent})
-    // selectNameForPass(req,res,req.body.search)
+    
+    // res.json(req.body)
+})
+
+router.post('/updateEditPass',(req,res)=>{
+    console.log('--------- updateEditPass -------------')
+    console.log(req.body)
+    
+    updatePass(req,res,req.body.packageData)
+    // res.json(req.body)
+})
+
+router.post('/deletePass',(req,res)=>{
+    console.log('--------- DeletePass -------------')
+    console.log(req.body)
+    deletePass(req,res,req.body)
+    // updatePass(req,res,req.body.packageData)
     // res.json(req.body)
 })
 
@@ -95,8 +141,16 @@ router.post('/closePassTicket',(req,res)=>{
 
 
 
-/**************** Test ******************/
 
+/**************** Test ******************/
+router.get('/testemailtemplate',(req,res)=>{
+    res.render('testNewEmailTemplate')
+})
+
+router.get('/testmail',(req,res)=>{
+    testSendMail()
+    res.send('In Mail Send')
+})
 
 router.get('/testreadlog',async (req,res)=>{
 

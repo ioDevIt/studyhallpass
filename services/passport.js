@@ -72,6 +72,7 @@ passport.use(new GoogleStrategy({ clientID: dotEnv.goog.googleClientID, clientSe
             searchAddObj.domain=profile._json.hd
             searchAddObj.VOnly={Roles:[]}
             searchAddObj.GOnly={displayName:profile.displayName,firstName:profile.name.givenName,lastName:profile.name.familyName,photos:'Maybe Later',email_verified:profile._json.email_verified}
+            searchAddObj.gates={}
         }
 
         // if(passStatic(searchAddObj.email)){
@@ -149,6 +150,7 @@ passport.use(new OAuth2Strategy({
             searchAddObj.Roles=[...thisInfo.data.roles]
 
             searchAddObj.grade = null
+            searchAddObj.gates={}
 
             // if(testUser){ // Add Student as Role for Testing
             //     searchAddObj.Roles.push('Student')

@@ -6,12 +6,11 @@
     <title>Document</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/cdn.min.js"></script> this version doesn't work with PARSE -->
     <script src="https://cdn.jsdelivr.net/npm/date-fns@4.1.0/cdn.min.js"></script>
 </head>
 <body>
     <style>
-            .thinking-splash {
+        .thinking-splash {
             position: fixed;
             inset: 0;
             z-index: 9999;
@@ -50,12 +49,6 @@
                 border-color: transparent;
                 color: inherit;
             }
-
-            #receiverSignDiv {
-                background-color: transparent;
-                border-color: transparent;
-                color: inherit;
-            }           
 
             .success-flash {
                 animation: successFlash 5s ease-in-out forwards;
@@ -108,9 +101,9 @@
         <div class="modal-body">
             <p id="alertModalMessage">Modal body text goes here.</p>
         </div>
-            <div class="modal-footer">
-                <button id="closeAlertModal" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
+        <div class="modal-footer">
+            <button id="closeAlertModal" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
         </div>
     </div>
     </div>
@@ -119,15 +112,32 @@
         <div class="h2 text-center">ʻIOLANI SCHOOL STUDY HALL EXCUSE</div>
         <form class="row g-3 mt-3">
             <div class="">
-            Please excuse <input id="nameTxt" class="form-select form-select-sm text-danger w-auto d-inline-block" aria-describedby="name-desc"  list="nameTxtList" placeholder="LastName, FirstName" type="text" name="nameTxt" value="" >
+            Please excuse <input id="nameTxt" class="form-select form-select-sm text-danger w-auto d-inline-block" aria-describedby="name-desc"  list="nameTxtList" placeholder="LastName, FirstName" type="text" name="nameTxt"  value="<%= data.nameDisplay %>" disabled >
             <datalist id="nameTxtList"></datalist>
                 , grade <span id="gradeSpan" class="text-danger"><%= data.grade %></span>,
 
 
                 on <input id="toReportOnDate" type="date" class="form-control text-danger w-auto d-inline-block" value=<%= data.displayAtDate %> />
                 <!-- period <input id="atPeriodSpan"  class="form-control form-control-sm text-danger w-auto d-inline-block" placeholder="Select Period From Table" /> -->
-                Period <span id="atPeriodSpan" class="text-danger"><%= data.on_period %></span><span id="atClintRecId" hidden></span>
+                Period <span id="atPeriodSpan" class="text-danger"><%= data.on_period %></span><span id="atClintRecId" hidden><%= data.clint %></span>
                 Study Hall
+
+
+
+            <div id="periodTable">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                        <th scope="col">Period</th>
+                        <th scope="col">Start</th>
+                        <th scope="col">End</th>
+                        <th scope="col">Class</th>
+                        <th scope="col">Fac</th>
+                        </tr>
+                    </thead>
+                    <tbody id="periodTableBody"></tbody>
+                </table>
+            </div>
 
 
 <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -161,12 +171,12 @@
         Select time
       </label> -->
 
-      <input id="fromTime" type="time" class="form-control" name="fromTime" min="08:00" max="15:00" step="60" value="<%= (data.displayAtTime?data.displayAtTime:'') %>"/>
+      <input id="fromTime" type="time" class="form-control" name="fromTime" min="08:00" max="15:00" step="60" value="<%= (data.at_time?data.at_time:'') %>" />
     </div>
   </div>
 </fieldset>
     
-            to report to <input id="destinationTxt" type="text" class="form-control form-control-sm text-danger" placeholder="destination to report to" style="width: 220px;"  value='<%= ((typeof data.report_to ==='undefined')?'':data.report_to) %>' />
+            to report to <input id="destinationTxt" type="text" class="form-control form-control-sm text-danger" placeholder="destination to report to" style="width: 220px;"  value='<%= data.report_to %>' />
             <!-- for -->
 
 
@@ -180,15 +190,15 @@
             </div>
 
   <div id="requestorSignDiv" class="col-md-6">
-     Requestor: <button id="requestorBtn" type="button" class="btn btn-primary btn-sm">Sign</button>
+     Requestor: <button id="requestorBtn" type="button" class="btn btn-primary btn-sm">Re-Sign</button>
         <div id="requestorRequestorSignDiv" class="alert alert-success d-inline-flex align-items-center gap-2 mb-0 py-1 px-2" role="alert">
-            <span id="requestorSignSpan" class="text-danger"><%= data.requestorDisplay %></span> <span id="requestorSignDateSpan" class="text-danger"><%= data.requestorSignedDisplay %></span>
+            <span id="requestorSignSpan" class="text-danger"></span> <span id="requestorSignDateSpan" class="text-danger"></span>
         <!-- <input id="requestorSignInput" class="text-danger" name="requestorSignInput" hidden></input><input id="requestorSignDateInput" class="text-danger" name="requestorSignDateInput" hidden></input> -->
         </div>
   </div>
 
 
-            <div id="periodTable">
+            <!-- <div id="periodTable">
                 <table class="table table-striped">
                     <thead>
                         <tr>
@@ -201,26 +211,23 @@
                     </thead>
                     <tbody id="periodTableBody"></tbody>
                 </table>
-            </div>
+            </div> -->
 
   <hr/>
 
 
-  <div>Student reported at <input id="reportedAtTime" type="time" class="form-control text-danger w-auto d-inline-block"  /> and departed at <input id="departedAtTime" type="time" class="form-control text-danger w-auto d-inline-block"  /> </div>
+  <!-- <div>Student reported at <input id="reportedAtTime" type="time" class="form-control text-danger w-auto d-inline-block"  /> and departed at <input id="departedAtTime" type="time" class="form-control text-danger w-auto d-inline-block"  /> </div>
 
 
-  <div id="receiverSignDiv" class="col-md-6">
-     Fac/Staff: <button id="receiverBtn" type="button" class="btn btn-primary btn-sm"   >Sign</button>
-        <div id="receiverReceiverSignDiv" class="alert alert-success d-inline-flex align-items-center gap-2 mb-0 py-1 px-2" role="alert">
-            <span id="receiverSignSpan" class="text-danger"></span> <span id="receiverSignDateSpan" class="text-danger"></span>
-        <!-- <input id="requestorSignInput" class="text-danger" name="requestorSignInput" hidden></input><input id="requestorSignDateInput" class="text-danger" name="requestorSignDateInput" hidden></input> -->
-        </div>
-  </div>
+  <div>
+    Fac/Staff: <span id="receiverSignSpan" class="text-danger"></span> <span id="receiverSignDateSpan" class="text-danger"></span>
+    <input id="receiverSignInput" class="text-danger" name="receiverSignInput" hidden></input><input id="receiverSignDateInput" class="text-danger" name="receiverSignDateInput" hidden></input>
+    <button id="receiverBtn" type="button" class="btn btn-primary btn-sm"   >Sign</button>
+  </div> -->
 
 </form>
 
-
-    </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script>
@@ -256,7 +263,7 @@
         const currentUserSpan= document.getElementById('currentUserSpan')
         const requestorRequestorSignDiv =  document.getElementById('requestorRequestorSignDiv')
         
-        const thisCurrentStudent={};
+        const thisCurrentStudent={id:<%= data.stud_id %>,grade:<%= data.grade %>};
         const gradeBracketRegex = /\[(\d{1,2})\]/
         const periodTextDefault = '[Select Period From Table]'
 
@@ -274,8 +281,8 @@
             ,duration:(fromAll.checked?'A':fromTime.value)
             ,reportTo:destinationTxt.value
             ,reason:reasonTxtArea.value
-            // ,requestor:requestorSignSpan.textContent
-            // ,requestSigned:requestorSignDateSpan.textContent
+
+            ,passId:currentPassTicketIdSpan.textContent
           }
 
           const postid="?"
@@ -283,7 +290,7 @@
 
           console.log('packageData',packageData)
 
-          axios.post('/newPass',{
+          axios.post('/updateEditPass',{
             packageData,
             postid:postid
           },rsConfig).then((rsp)=>{
@@ -292,9 +299,9 @@
 
             console.log('rspData',rspData)
 
-            if(('insertRsp' in rspData) && (rspData.insertRsp.length===1)){
-                requestorSignSpan.textContent=rspData.insertRsp[0].requestor
-                requestorSignDateSpan.textContent=rspData.insertRsp[0].requestor_signed
+            if(('returnDisplay' in rspData) && (rspData.returnDisplay.bywho!=='')){
+                requestorSignSpan.textContent=rspData.returnDisplay.bywho
+                requestorSignDateSpan.textContent=rspData.returnDisplay.updatedatetimeDisplay
                 requestorRequestorSignDiv.classList.remove('d-none')
                 requestorRequestorSignDiv.classList.add('success-flash')
                 disableElements()
@@ -339,6 +346,8 @@
             console.log('thisValueArray',thisValueArray)
             console.log('thisCurrentStudent',thisCurrentStudent)
 
+            hideClearPeriodTable()
+
             gradeSpan.textContent=thisCurrentStudent.grade
 
             requestorSignDiv.hidden=!allFieldsOk()
@@ -349,8 +358,15 @@
           console.log(thisDate)
             if(thisDate!==''){
                 getSHPeriodsForStudent(thisDate,thisCurrentStudent)
+                atPeriodSpan.textContent=periodTextDefault
+                fromTime.value=''
+                fromAll.value=''
+
                 requestorSignDiv.hidden=!allFieldsOk()
             }else{
+                atPeriodSpan.textContent=periodTextDefault
+                fromTime.value=''
+                fromAll.value=''
                 initSettings()
             }
         })
@@ -360,6 +376,7 @@
           console.log(thisDate)
             if(thisDate!==''){
                 getSHPeriodsForStudent(thisDate,thisCurrentStudent)
+                atPeriodSpan.textContent=periodTextDefault
                 requestorSignDiv.hidden=!allFieldsOk()
             }else{
                 initSettings()
@@ -374,6 +391,7 @@
 
         fromTime.addEventListener('input',(e)=>{
             clearFromAll()
+            console.log('Will check on requestorSignDiv.hidden=!allFieldsOk()')
             requestorSignDiv.hidden=!allFieldsOk()
             validateTimeSelected(e)
         })
@@ -394,9 +412,7 @@
 
         requestorBtn.addEventListener('click',(e)=>{
             if(allFieldsOk){
-                // requestorSignSpan.textContent=currentUserSpan.textContent
-                // requestorSignDateSpan.textContent=dateFns.format(new Date(), "yyyy-MM-dd"); 
-                requestorBtn.hidden=true
+                requestorBtn.hidden=true // uncomment for prod
                 sendPassData()
             }
             else{
@@ -414,7 +430,6 @@
             newEl.value =  `${thisRow.lname}, ${thisRow.pname} [${thisRow.grade}] - ${thisRow.id}`
             // newEl.textContent = thisRow.lname
             newEl.dataset.uid = thisRow.uid
-
             currentSelectionList[thisRow.uid]=thisRow
 
             nameTxtList.append(newEl)
@@ -434,6 +449,8 @@
                 const postid="?"
                 const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
 
+                console.log({         studentInfo:thisCurrentStudent,
+                    postid:postid})
                 axios.post('/getSHPeriods',{
                     search:thisDate,
                     studentInfo:thisCurrentStudent,
@@ -448,7 +465,7 @@
                     showTable()
                     allFieldsOk()
                 })
-                .catch((e)=>{console.log(e)})
+                .catch((e)=>{console.log(e);hideThinking()})
                 .finally(()=>{
                     hideThinking()
                 })
@@ -480,6 +497,12 @@
         splash.classList.add("d-none");
         };
 
+        const clearRowHighLights= () =>{
+            const thisClassName='table-warning'
+            const theseRows = document.getElementsByClassName(thisClassName)
+
+            for(let i=0;i<theseRows.length;i++){theseRows[i].classList.remove(thisClassName)}
+        }
 
         const setTable=(thisTableBody,thisData)=>{
             console.log('thisTableBody',thisTableBody.id)
@@ -492,6 +515,8 @@
                     atPeriodSpan.textContent=rowData.period
                     atClintRecId.textContent=rowData.clint
                     requestorSignDiv.hidden=!allFieldsOk()
+                    clearRowHighLights()
+                    e.currentTarget.classList.add('table-warning')
                     setTimeLimitsOnTimePicker(rowData.start,rowData.end)
                 })
 
@@ -551,7 +576,7 @@
 
                 showAlertModal("Invalid Time",`Please choose time between ${event.target.min} and ${event.target.max}`)
             } else {
-                console.log('Inside Valide Range')
+                console.log('Inside Valid Range')
                 event.target.setCustomValidity("");
                 fromTime.classList.toggle("is-invalid", false);
             }
@@ -564,13 +589,14 @@
         }
 
         const initSettings=()=>{
-            requestorSignDiv.hidden=!allFieldsOk()
+            requestorSignDiv.hidden= true // !allFieldsOk()
             // atPeriodSpan.textContent = periodTextDefault
-            periodTableBody.replaceChildren()
-            hideTable()
-            requestorSignDiv.hidden=!allFieldsOk()
             // fromAll.checked=false
             // fromTime.value=''
+            periodTableBody.replaceChildren()
+            hideTable()
+            // requestorSignDiv.hidden=!allFieldsOk()
+            
             fromTime.setCustomValidity('')
             fromTime.classList.toggle("is-invalid", false)
             requestorRequestorSignDiv.classList.add('d-none')
@@ -594,108 +620,13 @@
             )
         }
 
-        // initSettings()
-        disableElements()
-
-
-
-        /**************** For Completed ***********************/alertModal
-
-        const currentPassTicketIdSpan= document.getElementById('currentPassTicketIdSpan')
-        const reportedAtTime=document.getElementById('reportedAtTime')
-        const departedAtTime=document.getElementById('departedAtTime')
-        const receiverBtn=document.getElementById('receiverBtn')
-        const receiverReceiverSignDiv=document.getElementById('receiverReceiverSignDiv')
-
-        reportedAtTime.addEventListener('input',(e)=>{
-            allCompleteFieldsOk()
-        })
-
-        departedAtTime.addEventListener('input',(e)=>{
-            allCompleteFieldsOk()
-        })
-        
-        const allCompleteFieldsOk=()=>{
-            let shouldHide=true
-            if (reportedAtTime.value!=='' && departedAtTime.value!==''){
-                console.log('reportedAtTime.value',reportedAtTime.value)
-                const reportedTime= dateFns.parse(reportedAtTime.value,"HH:mm",new Date())
-                const departedTime= dateFns.parse(departedAtTime.value,"HH:mm",new Date())
-
-                console.log('(reportedTime < departedTime)',(reportedTime < departedTime))
-
-                if((reportedTime > departedTime)){
-                    showAlertModal('Reported Times Issue','Reported at must before departed time')
-                }
-                else{
-                    receiverReceiverSignDiv.classList.add('d-none')
-                    receiverReceiverSignDiv.classList.remove('success-flash')
-                    shouldHide=false
-                }
-            }
-
-            reportedAtTime.classList.toggle("is-invalid", shouldHide);
-            departedAtTime.classList.toggle("is-invalid", shouldHide);
-            receiverBtn.hidden=shouldHide
-
-            console.log('shouldHide',shouldHide)
-            return shouldHide
+        const hideClearPeriodTable =() =>{
+            periodTableBody.replaceChildren()
+            hideTable()
         }
 
+        initSettings()
 
-        receiverBtn.addEventListener('click',(e)=>{
-            receiverBtn.hidden=true
-            receiverSignPassData()
-        })
-
-        const receiverSignPassData=()=>{
-          const packageData={
-            passId:currentPassTicketIdSpan.textContent
-            ,reportedAtTime:reportedAtTime.value
-            ,departedAtTime:departedAtTime.value
-          }
-
-          const postid="?"
-          const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
-
-          console.log('packageData',packageData)
-
-          axios.post('/closePassTicket',{
-            packageData,
-            postid:postid
-          },rsConfig).then((rsp)=>{
-            console.log('rsp',rsp)
-            const rspData = rsp.data
-
-            console.log('returnRsp',rspData)
-
-            if(('sig' in rspData)){
-        	    receiverSignSpan.textContent=rspData.sig
-                receiverSignDateSpan.textContent=rspData.sigDT
-                receiverReceiverSignDiv.classList.remove('d-none')
-                receiverReceiverSignDiv.classList.add('success-flash')
-                // disableElements()
-            }
-            else{
-                showAlertModal("Error","Please Check Fields")
-            }
-            
-            // setNewValues(rspData)
-          })
-          .catch((e)=>{console.log(e)})
-        }
-
-        const completeInit=()=>{
-            receiverBtn.hidden=true
-            receiverReceiverSignDiv.classList.add('d-none')
-            receiverReceiverSignDiv.classList.remove('success-flash');
-        }
-        
-
-        completeInit()
-
-        periodTable.hidden=true
-        requestorBtn.hidden=true
     </script>
 </body>
 </html>

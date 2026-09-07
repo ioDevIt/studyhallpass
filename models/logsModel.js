@@ -23,3 +23,21 @@ export  const getLogsConfirmedNoChange=(fromDate,toDate)=>{
 
         return knexPG('logs').select('*').where({action:"Confirmed No Change Emergency Contact"}).orderBy('id','desc')
     }
+
+export const insertLogsBatch=(uidData)=>{
+    return knexPG.transaction(async (trx) => {
+            const returningIds={
+                insert:(uidData.insert)?[]:undefined
+            }
+
+            if(uidData.insert){
+                for(const row of uidData.insert){
+                    console.log('uidData.insert',uidData.insert)
+                    console.log('row',row)
+                    returningIds.insert.push(await trx(uidData.table).insert(row).returning('id'))
+                }
+            }
+
+            return returningIds
+        });
+}

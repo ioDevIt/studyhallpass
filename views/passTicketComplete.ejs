@@ -119,7 +119,7 @@
         <div class="h2 text-center">ʻIOLANI SCHOOL STUDY HALL EXCUSE</div>
         <form class="row g-3 mt-3">
             <div class="">
-            Please excuse <input id="nameTxt" class="form-select form-select-sm text-danger w-auto d-inline-block" aria-describedby="name-desc"  list="nameTxtList" placeholder="LastName, FirstName" type="text" name="nameTxt" value="" >
+            Please excuse <input id="nameTxt" class="form-select form-select-sm text-danger w-auto d-inline-block" aria-describedby="name-desc"  list="nameTxtList" placeholder="LastName, FirstName" type="text" name="nameTxt" value="<%= data.nameDisplay %>" >
             <datalist id="nameTxtList"></datalist>
                 , grade <span id="gradeSpan" class="text-danger"><%= data.grade %></span>,
 
@@ -660,6 +660,8 @@
 
           console.log('packageData',packageData)
 
+          showThinking('Movin It',4)
+
           axios.post('/closePassTicket',{
             packageData,
             postid:postid
@@ -668,6 +670,8 @@
             const rspData = rsp.data
 
             console.log('returnRsp',rspData)
+
+            
 
             if(('sig' in rspData)){
         	    receiverSignSpan.textContent=rspData.sig
@@ -683,6 +687,9 @@
             // setNewValues(rspData)
           })
           .catch((e)=>{console.log(e)})
+          .finally(()=>{
+            hideThinking()
+          })
         }
 
         const completeInit=()=>{

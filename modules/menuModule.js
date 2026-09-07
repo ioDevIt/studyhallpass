@@ -21,5 +21,12 @@ export const setMenu = async (req,res)=>{
     // res.json({permissionForTheseClasses,shClassesByViewAttendance,theseClassesDB})
     // return
 
+    /**** Set req.user.gates.clints  to shClassesClint *****/
+
+    if(!('gates' in req.user)){ req.user.gates={}}
+    if(!('clint' in req.user.gates)){ req.user.gates.clint=[]}
+
+    req.user.gates.clint=shClassesClint
+
     res.render('menu',{title:'',subtitle:'',menus:menuItems})    
 }

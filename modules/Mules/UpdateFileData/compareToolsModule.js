@@ -66,9 +66,16 @@ export  const compareLists=(ASet,BSet,matchKeyFN,compareFields)=>{
             const toUpdate={}
 
             compareFields.forEach((thisCompareField)=>{
-                if(both.setA[compareKey][thisCompareField]!==both.setB[compareKey][thisCompareField]){
-                    toUpdate[thisCompareField]=both.setA[compareKey][thisCompareField]
-                    reason.push({compareKey:compareKey,field:thisCompareField,A:both.setA[compareKey][thisCompareField],B:both.setB[compareKey][thisCompareField],display:`${both.setA[compareKey][thisCompareField]} => ${both.setB[compareKey][thisCompareField]}`})
+                if(both.setA[compareKey][thisCompareField] instanceof Date){
+                    if(both.setA[compareKey][thisCompareField].getTime()!==both.setB[compareKey][thisCompareField].getTime()){
+                        toUpdate[thisCompareField]=both.setA[compareKey][thisCompareField]
+                        reason.push({compareKey:compareKey,field:thisCompareField,A:both.setA[compareKey][thisCompareField],B:both.setB[compareKey][thisCompareField],display:`${both.setA[compareKey][thisCompareField]} => ${both.setB[compareKey][thisCompareField]}`})
+                    }
+                } else {
+                    if(both.setA[compareKey][thisCompareField]!==both.setB[compareKey][thisCompareField]){
+                        toUpdate[thisCompareField]=both.setA[compareKey][thisCompareField]
+                        reason.push({compareKey:compareKey,field:thisCompareField,A:both.setA[compareKey][thisCompareField],B:both.setB[compareKey][thisCompareField],display:`${both.setA[compareKey][thisCompareField]} => ${both.setB[compareKey][thisCompareField]}`})
+                    }
                 }
             })
 
@@ -82,7 +89,7 @@ export  const compareLists=(ASet,BSet,matchKeyFN,compareFields)=>{
     }
 
 
-export const createUIDNooks = (thisData,tableName,insertFn, deleteFn, updateFn)=>{
+export const createUIDNooks = (thisData,tableName,insertFn, deleteFn, updateFn,updateReturning=['id'])=>{
     const uidObject={table:tableName}
 
     if('aOnly' in thisData && thisData.aOnly.length!==0){
@@ -95,6 +102,7 @@ export const createUIDNooks = (thisData,tableName,insertFn, deleteFn, updateFn)=
 
     if('toUpdateAll' in thisData && thisData.toUpdateAll.length!==0){
         uidObject.update=thisData.toUpdateAll.map(updateFn)
+        uidObject.updateReturning=updateReturning
     }
     
     return uidObject
@@ -124,7 +132,7 @@ export const uidNooks = async (uidData) =>{
                     const {id,...updateData} = {...row}
                     console.log(row)
                     console.log(id, updateData)
-                    returningIds.update.push(await trx(uidData.table).where({id:id}).update(updateData).returning('id'))
+                    returningIds.update.push(await trx(uidData.table).where({id:id}).update(updateData).returning(uidData.updateReturning))
                 }
             }
 

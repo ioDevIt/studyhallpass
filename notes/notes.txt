@@ -44,7 +44,10 @@ CREATE TABLE users_roles (
 
 CREATE TABLE logs (
     id SERIAL PRIMARY KEY,
-    action VARCHAR(50) DEFAULT '' NOT NULL,
+    key VARCHAR(50) DEFAULT '',
+    keyint INTEGER,
+    keytext VARCHAR(100) DEFAULT '',
+    action VARCHAR(100) DEFAULT '' NOT NULL,
     value VARCHAR(255) DEFAULT '' NOT NULL,
     is_active boolean DEFAULT true NOT NULL,
     bywho VARCHAR(25),

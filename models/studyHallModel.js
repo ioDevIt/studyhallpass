@@ -1,5 +1,6 @@
 import dotenvMod from "../modules/Mules/dotenvModule.js"
 import knex from 'knex'
+import {format,parse} from "date-fns";
 
 const knexPgSetup = dotenvMod().knex
 const knexPG = knex(knexPgSetup)
@@ -45,10 +46,40 @@ export const insertNewPassTicket=(data)=>{
 }
 
 export const getPassTicketById=(thisId)=>{    
-    return knexPG('v_class_enrollment_pass_info').select('fname','pname','lname','grade','pt_id','duration','at_date','at_time','on_period','report_to','reason','requestor','requestor_signed','out_dt','in_dt','receiver','receiver_signed','pt_status').where({pt_id:thisId})
+    return knexPG('pass_ticket').select('*').where({id:thisId})
+}
+
+export const deletePassTicket=(userid,passid)=>{
+    return knexPG('pass_ticket').update({is_active:false}).where({id:passid,requestor:userid,status:'New'}).returning(['id'])
+}
+
+export const getPassTicketViewInfoById=(thisId)=>{    
+    return knexPG('v_class_enrollment_pass_info').select('stud_id','fname','pname','lname','grade','pt_id','clint','classid','duration','at_date','at_time','on_period','report_to','reason','requestor','requestor_signed','out_dt','in_dt','receiver','receiver_signed','pt_status').where({pt_id:thisId})
 }
 
 export const closePassTicketById=(thisId,updateData)=>{    
 // out_dt | in_dt | receiver | receiver_signed 
     return knexPG('pass_ticket').update(updateData).where({id:thisId}).returning(['id','out_dt','in_dt','receiver','receiver_signed'])
+}
+
+export const getOpenPassTickets=(isOnlyToday=true,whereObjArray=[])=>{    
+// out_dt | in_dt | receiver | receiver_signed 
+    const todayCompare = format(new Date(),'yyyy-MM-dd')
+    const todayCompareOp = (isOnlyToday?'=':'>=')
+
+    const thisSQLKnex = knexPG('v_class_enrollment_pass_info').select('clint','classid','name','period','term','room','sid','pid','fname','pname','lname','pt_id','duration','at_date','at_time','on_period','report_to','reason','requestor','requestor_signed','pt_status','need_review','pt_bywho','pt_createddatetime')
+        .whereNotNull('pt_bywho')
+        .where('at_date',todayCompareOp,todayCompare)
+
+    whereObjArray.forEach((r)=>{
+        console.log('r',r)
+        if(r.type==='whereIn'){
+            thisSQLKnex[r.type](r.field,r.value)
+        }else{
+            thisSQLKnex[r.type](r.value)
+        }
+
+    })
+
+    return thisSQLKnex
 }

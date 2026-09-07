@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"> -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <style>
+        .thinking-splash {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.8);
+            }
+
+        .thinking-box {
+            padding: 1.5rem 2rem;
+            text-align: center;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.2);
+            font-size: 1.25rem;
+            color: #333;
+            }
+
+        .d-none {
+            display: none !important;
+            }
+    </style>
+</head>
+<body>
+    <!-- Splash screen -->
+    <div id="thinkingSplash" class="thinking-splash d-none">
+    <div class="thinking-box">
+        <div id="thinkingText">thinking</div>
+        <div class="spinner-border spinner-border-sm mt-2"></div>
+    </div>
+    </div>
+    <!-- Alert Modal -->
+    <div id="modal" class="dn fixed top-0 left-0 w-100 h-100 bg-black-50 items-center justify-center">
+    <div class="bg-white pa4 br3 shadow-5">
+        <h2 id="modalTitle" class="f4">Modal Title</h2>
+        <p  id="modalText" >Your content goes here.</p>
+
+        <button id="closeModal" class="f6 link dim br2 ph3 pv2 mb2 dib white bg-red">
+        Close
+        </button>
+    </div>
+    </div>
+
+    <div class="cf">
+        <div class="fl w-5 w-10-ns tc pv5"></div>
+        <div class="fl w-100 w-80-ns tc pv5">
+            <header class="bg-white black-80 tc pv4 avenir">
+                <h1 class="mt2 mb0 baskerville i fw1 f1"><%= title %></h1>
+                <h2 class="mt2 mb0 f6 fw4 ttu tracked"><%= subtitle %></h2>
+                <nav class="bt bb tc center mt4">
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" href="/createPass">Create Pass</a>
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" href="/listmystudentspassestoday">Todays Passes For My Students</a>
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" href="/listmystudentspasses">Passes For My Students</a>
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" href="/listmypasses">View My Passes</a>
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" href="/listtodays">View Todays Passes</a> 
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" href="/listall">View All Open Passes</a> <!-- only for counselors and admin -->
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-light-yellow dib pa3 ph4-l" href="/logout">Logout</a>
+                </nav>
+            </header>
+            <div class="pa4">
+            <div class="overflow-auto">
+                <table class="f6 w-100 mw8 center" cellspacing="0">
+                    <thead>
+                        <tr class="stripe-dark">
+                        <th class="fw6 tl pa3 bg-white">Date</th>
+                        <th class="fw6 tl pa3 bg-white">Period</th>
+                        <th class="fw6 tl pa3 bg-white">Name</th>            
+                        <th class="fw6 tl pa3 bg-white">Report To</th>
+                        <th class="fw6 tl pa3 bg-white">Reason</th>
+                        <th class="fw6 tl pa3 bg-white">Duration</th>
+                        <th class="fw6 tl pa3 bg-white">Status</th>
+                        <th class="fw6 tl pa3 bg-white">Requestor</th>
+                        <th class="fw6 tl pa3 bg-white">Pass #</th>
+                        <th class="fw6 tl pa3 bg-white"></th>
+                        <th class="fw6 tl pa3 bg-white"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="mainTBody">
+                        <% displayPasses.forEach((r)=>{ %>
+                        <tr id=<%= `row_${r.pt_id}` %> class="stripe-dark" onclick=viewPass(<%= r.pt_id %>)>
+                            <td class="tl pa3"><%= r.displayDate %></td>
+                            <td class="tl pa3"><%= r.period %></td>
+                            <td class="tl pa3"><%= `${r.pname} ${r.lname}` %></td>            
+                            <td class="tl pa3"><%= r.report_to %></td>
+                            <td class="tl pa3"><%= r.reason %></td>
+                            <td class="tl pa3"><%= (r.duration==='A'?r.duration:r.displayDuration) %></td>
+                            <td class="tl pa3"><%= r.pt_status %></td>
+                            <td class="tl pa3"><a href="mailto:<%= r.requestor %>"><%= r.requestor %></a></td>
+                            <td class="tl pa3"><%= r.pt_id %></td>
+                            <td class="tl pa3">
+                                <% if(r.allowEdit){ %>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16" onclick=editPass(<%= r.pt_id %>)>
+                                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                    <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                                </svg>
+                                <% } %>
+                            </td>
+                            <td class="tl pa3">
+                                <% if(r.allowDelete){ %>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16" onclick="event.preventDefault(); event.stopPropagation(); deletePass(<%= r.pt_id %>)"> 
+  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+  <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+</svg>
+                                <% } %>      
+                            </td>                            
+                        </tr>
+                        <% })  %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script> -->
+    <!-- <script src ="./js/tools.js"></script> -->
+
+
+    <script>
+        const viewPass=(thisPassId)=>{
+            window.open(`/viewPass/${thisPassId}`, '_blank')
+        }
+
+        const editPass=(thisPassId)=>{
+            window.open(`/editPass/${thisPassId}`, '_blank')
+        }
+
+        const deletePass=(thisPassId)=>{
+            showThinking('eating',4)
+            const postid="?"
+                const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+
+                axios.post('/deletePass',{
+                    search:new Date(),
+                    thisPassId:thisPassId,
+                    postid:postid
+                },rsConfig).then((rsp)=>{                   
+                    const rspData = rsp.data
+
+                    console.log('rsp',rsp)
+                    console.log('rspData',rspData)
+
+                    // setTable(periodTableBody,rspData)
+                    // showTable()
+                    // allFieldsOk()
+                    hideThinking()
+
+                    if(rspData.status=='Ok'){
+                        document.getElementById(`row_${thisPassId}`).remove()
+                    }
+                    else{
+                        showAlertModal('Delete Issue',`Could Not Delete Pass #${thisPassId}`)
+                    }
+                })
+                .catch((e)=>{console.log(e);hideThinking()})
+                .finally(()=>{
+                    hideThinking()
+                })
+        }
+    </script>
+
+    <script>
+        const modal = document.getElementById("modal")
+        const closeModal=document.getElementById('closeModal')
+        const modalTitle = document.getElementById("modalTitle")
+        const modalText = document.getElementById("modalText")
+
+        modal.classList.add("dn");
+
+        const showAlertModal=(thisModalTitle,thisModalMessage)=>{
+            modalTitle.textContent = thisModalTitle
+            modalText.textContent = thisModalMessage
+            // modal.classList.remove("dn");
+            modal.classList.add("flex");
+        }
+
+        const hideAlertModal=()=>{
+            modal.classList.remove("flex")
+        }
+
+        closeModal.addEventListener('click',hideAlertModal)
+        modal.addEventListener('click',hideAlertModal)
+    </script>
+
+    <script>
+         const splash = document.getElementById("thinkingSplash")
+        let thinkingTimer;        
+
+        const showThinking = (startingWord,numofPauseDots) => {
+        const thisStartingWord = (startingWord?startingWord:'thinking')
+        const thisNumOfPauseDots = (numofPauseDots?numofPauseDots:6)
+        let thinkingDots = 0
+        splash.classList.remove("d-none");
+
+        thinkingDots = 0;
+        thinkingText.textContent = thisStartingWord;
+
+        thinkingTimer = setInterval(() => {
+            thinkingDots = (thinkingDots + 1) % thisNumOfPauseDots;
+            thinkingText.textContent = `${thisStartingWord}${".".repeat(thinkingDots)}`;
+        }, 500);
+        };
+
+        const hideThinking = () => {
+        clearInterval(thinkingTimer);
+        splash.classList.add("d-none");
+        };
+
+        const initSettings=()=>{
+            hideAlertModal()
+        }
+
+        initSettings()
+        
+    </script>
+</body>
+</html>
