@@ -44,6 +44,33 @@ router.get('/',(req,res)=>{
     res.json(req.user)
 })
 
+
+/************* Production POST **********************/
+router.post('/updateClasses', async (req,res)=>{
+    const studyHallClasses= await updateClasses(req,res)
+
+    res.json({studyHallClasses}) // studyHallClasses,len:studyHallClasses.length,s
+})
+
+router.post('/updateEnrollments', async (req,res)=>{
+    const enrollmentsObj= {studentInfoReference:testData,classEnrollmentDictionary:testEnrollmentsData}  // await getEnrollments(true)
+
+    const updateFacStudentsReturns = await updateFacStudents(enrollmentsObj.studentInfoReference)
+
+    let enrollmentsArray =[]
+
+    for(const[key,value] of Object.entries(enrollmentsObj.classEnrollmentDictionary)){ // same ast enroolementsObj to test
+        enrollmentsArray=enrollmentsArray.concat(value.enrollments)
+    }
+
+    const updateEnrollmentReturns = await updateEnrollments(enrollmentsArray)
+
+    res.json(updateEnrollmentReturns)
+})
+
+
+/**************  Test GET *****************************/
+
 router.get('/updateClasses', async (req,res)=>{
     const studyHallClasses= await updateClasses(req,res)
 

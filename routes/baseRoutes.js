@@ -11,7 +11,7 @@
  import {setMenu} from '../modules/menuModule.js'
  import {setClassPage,selectNameForPass,getStudyHallsForThisStudentOnThisDate,addNewPass,viewToCompletePass,viewToEditPass
         ,viewPassReadOnly
-        ,closePass,updatePass,getOpenPasses,deletePass
+        ,closePass,updatePass,getOpenPasses,deletePass,editSeatChange,editEnrollmentStatus
         ,testSendMail} from '../modules/studyHallModule.js'
 
 import {insertLog,insertLogAsync,trace,traceObj} from '../modules/Mules/logsModule.js'
@@ -64,27 +64,25 @@ router.get('/editPass/:pt_id',(req,res)=>{
 
 router.get('/listmystudentspassestoday',(req,res)=>{
     console.log('req.user.gates.clint',req.user.gates.clint)
-    getOpenPasses(req,res,"My Student's Passes For Today",true,[{type:'whereIn',field:'clint',value:req.user.gates.clint}])
+    getOpenPasses(req,res,"My Student's Passes For Today",true,false,[{type:'whereIn',field:'clint',value:req.user.gates.clint}])
 })
 
 router.get('/listmystudentspasses',(req,res)=>{
     console.log('req.user.gates.clint',req.user.gates.clint)
-    getOpenPasses(req,res,"My Student's Passes",false,[{type:'whereIn',field:'clint',value:req.user.gates.clint}])
+    getOpenPasses(req,res,"My Student's Passes",false,false,[{type:'whereIn',field:'clint',value:req.user.gates.clint}])
 })
 
 router.get('/listmypasses',(req,res)=>{
-    getOpenPasses(req,res,"My Passes",false,[{type:'where',value:{requestor:req.user.email}}])
+    getOpenPasses(req,res,"My Passes",false,true,[{type:'where',value:{requestor:req.user.email}}])
 })
 
 router.get('/listtodays',(req,res)=>{
-    getOpenPasses(req,res,"Today's Passes",true,[])
+    getOpenPasses(req,res,"Today's Passes",true,false,[])
 })
 
 router.get('/listall',(req,res)=>{
-    getOpenPasses(req,res,"OPEN PASSES",false,[])
+    getOpenPasses(req,res,"OPEN PASSES",false,false,[])
 })
-
-
 
 router.post('/getPassStudentList',(req,res)=>{
     console.log(req.body.search)
@@ -134,8 +132,21 @@ router.post('/deletePass',(req,res)=>{
     // res.json(req.body)
 })
 
+router.post('/seatChange',(req,res)=>{
+    console.log('--------- Seat Change -------------')
+    console.log(req.body)
 
+    editSeatChange(req,res,req.body.dataSend)
+    // res.json(req.body)
+})
 
+router.post('/setclassenrollmentstatus',(req,res)=>{
+    console.log('--------- Seat Change -------------')
+    console.log(req.body)
+
+    editEnrollmentStatus(req,res,req.body.dataSend)
+    // res.json(req.body)
+})
 
 
 

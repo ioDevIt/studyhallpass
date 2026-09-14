@@ -20,9 +20,6 @@ export const updateClasses = async (req,res)=>{
         if(!(r.primary_teacher_id in classesUSSHPRimaryTeacherId)){classesUSSHPRimaryTeacherId.push(r.primary_teacher_id)}
     })
 
-    // const classUSSHClints=Object.keys(classUSSHDictionary)
-
-
     const classSchedules = await getAllCurrentSchoolYearUSClassSchedulesByFacId(classesUSSHPRimaryTeacherId)
     const studyHallClasses = classSchedules
             // .filter((r)=>(!r.class_id.includes('SH08')))

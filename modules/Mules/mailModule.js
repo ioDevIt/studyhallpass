@@ -60,7 +60,7 @@ export const newPassEmailTemplate=(passId,report_to,on_date,at_period,duration,r
     return `
     <h2>Pass #${passId}</h2>
     <p>A new pass has been created for you.</p>
-    <p>Please report to ${report_to} on ${on_date} at period ${at_period}${(duration==='A'?'. ':' from '+ duration)}.</p>
+    <p>Please report to ${report_to} on ${on_date} at period ${at_period}${(duration==='A'?'':' from '+ duration)}.</p>
     <p>Please contact ${requestor} if you have any questions.</p>
             `
 }

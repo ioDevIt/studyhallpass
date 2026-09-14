@@ -136,6 +136,7 @@
   <hr/>
 
 
+  <% if(data.pt_status === 'Cmp'){ %>
     <div>Student reported at <input id="reportedAtTime" type="time" class="form-control text-danger w-auto d-inline-block" value="<%= data.reportedAtTimeDisplay %>" disabled /> and departed at <input id="departedAtTime" type="time" class="form-control text-danger w-auto d-inline-block" value="<%= data.departedAtTimeDisplay %>" disabled /> </div>
 
     <div id="receiverSignDiv" class="col-md-6">
@@ -144,6 +145,8 @@
                 <span id="receiverSignSpan" class="text-danger"><%= data.receiverDisplay %></span> <span id="receiverSignDateSpan" class="text-danger"><%= data.receiverSignedDisplay %></span>
             </div>
     </div>
+
+    <%  } %>
 
 </form>
 

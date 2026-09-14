@@ -28,11 +28,11 @@ app.use(pinoHttp({logger}))
 
 
 /****** sockets ********/
-// import {createServer} from 'node:http';
-// import {Server} from 'socket.io';
-// import {setSocketHandler} from "./modules/socketHandler.js"
-// const server = createServer(app);
-// export const io = new Server(server);
+import {createServer} from 'node:http';
+import {Server} from 'socket.io';
+import {setSocketHandler} from "./modules/Mules/socketHandler.js"
+const server = createServer(app);
+export const io = new Server(server);
 /******* end sockects ********/
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -103,6 +103,7 @@ import dotEnvMod from "./modules/Mules/dotenvModule.js"
 import authRoutes from "./routes/authRoutes.js"
 import passportServices from "./services/passport.js"
 import baseRoutes from "./routes/baseRoutes.js"
+import adminRoutes from "./routes/adminRoutes.js"
 import nuRoutes from "./routes/mainNonUserRoutes.js"
 import firstFenceRoutes from "./routes/firstFenceRoutes.js"
 import accessRoutes from "./routes/accessRoutes.js"
@@ -200,6 +201,7 @@ app.use('/ep',epRoutes)
 app.use('/updatedata',updateDataRoutes)
 
 app.use('/',baseRoutes)
+app.use('/admin',adminRoutes)
 
 // app.use('/sample',sampleRoutes)
 
@@ -209,14 +211,14 @@ app.use((req,res)=>{
 })
 
 /****** sockets ********/
-// setSocketHandler(io)
-// server.listen(process.env.PORT,()=>{
-//     console.log(`Listening on PORT ${process.env.PORT}`)
-// })
+setSocketHandler(io)
+server.listen(process.env.PORT,()=>{
+    console.log(`Listening on PORT ${process.env.PORT}`)
+})
 /***********************/
 
 /********** comment if using sockets ******/
-app.listen(process.env.PORT,()=>{
-    console.log(`Listening on PORT ${process.env.PORT}`)
-    logger.info({ port:process.env.PORT }, "Server started");
-})
+// app.listen(process.env.PORT,()=>{
+//     console.log(`Listening on PORT ${process.env.PORT}`)
+//     logger.info({ port:process.env.PORT }, "Server started");
+// })

@@ -8,6 +8,7 @@
     <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"> -->
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <style>
         .thinking-splash {
             position: fixed;
@@ -90,17 +91,22 @@
                     </thead>
                     <tbody id="mainTBody">
                         <% displayPasses.forEach((r)=>{ %>
-                        <tr id=<%= `row_${r.pt_id}` %> class="stripe-dark" onclick=viewPass(<%= r.pt_id %>)>
-                            <td class="tl pa3"><%= r.displayDate %></td>
-                            <td class="tl pa3"><%= r.period %></td>
-                            <td class="tl pa3"><%= `${r.pname} ${r.lname}` %></td>            
-                            <td class="tl pa3"><%= r.report_to %></td>
-                            <td class="tl pa3"><%= r.reason %></td>
-                            <td class="tl pa3"><%= (r.duration==='A'?r.duration:r.displayDuration) %></td>
-                            <td class="tl pa3"><%= r.pt_status %></td>
-                            <td class="tl pa3"><a href="mailto:<%= r.requestor %>"><%= r.requestor %></a></td>
-                            <td class="tl pa3"><%= r.pt_id %></td>
-                            <td class="tl pa3">
+                        <% if(isOnlyMyPasses){ %>
+                            <tr id=<%= `row_${r.pt_id}` %> class="stripe-dark" onclick=completePass(<%= r.pt_id %>)>
+                         <% } else { %>
+                            <tr id=<%= `row_${r.pt_id}` %> class="stripe-dark" onclick=viewPass(<%= r.pt_id %>)>
+                         <% } %>
+                        
+                            <td id=<%= `row_displayDate_${r.pt_id}` %> class="tl pa3"><%= r.displayDate %></td>
+                            <td id=<%= `row_period_${r.pt_id}` %> class="tl pa3"><%= r.period %></td>
+                            <td id=<%= `row_displayName_${r.pt_id}` %> class="tl pa3"><%= `${r.pname} ${r.lname}` %></td>            
+                            <td id=<%= `row_reportTo_${r.pt_id}` %> class="tl pa3"><%= r.report_to %></td>
+                            <td id=<%= `row_reason_${r.pt_id}` %> class="tl pa3"><%= r.reason %></td>
+                            <td id=<%= `row_duration_${r.pt_id}` %> class="tl pa3"><%= (r.duration==='A'?r.duration:r.displayDuration) %></td>
+                            <td id=<%= `row_status_${r.pt_id}` %> class="tl pa3"><%= r.pt_status %></td>
+                            <td id=<%= `row_requestor_${r.pt_id}` %> class="tl pa3"><a href="mailto:<%= r.requestor %>"><%= r.requestor %></a></td>
+                            <td id=<%= `row_ptid_${r.pt_id}` %> class="tl pa3"><%= r.pt_id %></td>
+                            <td id=<%= `row_editsvg_${r.pt_id}` %> class="tl pa3">
                                 <% if(r.allowEdit){ %>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16" onclick=editPass(<%= r.pt_id %>)>
                                     <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
@@ -108,7 +114,7 @@
                                 </svg>
                                 <% } %>
                             </td>
-                            <td class="tl pa3">
+                            <td id=<%= `row_deletesvg_${r.pt_id}` %> class="tl pa3">
                                 <% if(r.allowDelete){ %>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16" onclick="event.preventDefault(); event.stopPropagation(); deletePass(<%= r.pt_id %>)"> 
   <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
@@ -131,6 +137,10 @@
     <script>
         const viewPass=(thisPassId)=>{
             window.open(`/viewPass/${thisPassId}`, '_blank')
+        }
+
+        const completePass=(thisPassId)=>{
+            window.open(`/completePass/${thisPassId}`, '_blank')
         }
 
         const editPass=(thisPassId)=>{
@@ -172,10 +182,11 @@
     </script>
 
     <script>
-        const modal = document.getElementById("modal")
+        const mainTBody = document.getElementById('mainTBody')
+        const modal = document.getElementById('modal')
         const closeModal=document.getElementById('closeModal')
-        const modalTitle = document.getElementById("modalTitle")
-        const modalText = document.getElementById("modalText")
+        const modalTitle = document.getElementById('modalTitle')
+        const modalText = document.getElementById('modalText')
 
         modal.classList.add("dn");
 
@@ -225,5 +236,214 @@
         initSettings()
         
     </script>
+
+
+    <script>
+        const createEditIconCell = (passId) => {
+            const thisTD = document.createElement('td')
+            thisTD.id=`row_editsvg_${passId}` 
+            thisTD.classList.add('tl','pa3')
+
+            const svgNS = 'http://www.w3.org/2000/svg';
+
+            const svg = document.createElementNS(svgNS, 'svg');
+            svg.setAttribute('xmlns', svgNS);
+            svg.setAttribute('width', '16');
+            svg.setAttribute('height', '16');
+            svg.setAttribute('fill', 'currentColor');
+            svg.setAttribute('class', 'bi bi-pencil-square');
+            svg.setAttribute('viewBox', '0 0 16 16');
+
+            svg.addEventListener('click', () => {
+                editPass(passId);
+            });
+
+            const path1 = document.createElementNS(svgNS, 'path');
+            path1.setAttribute(
+                'd',
+                'M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z'
+            );
+
+            const path2 = document.createElementNS(svgNS, 'path');
+            path2.setAttribute('fill-rule', 'evenodd');
+            path2.setAttribute(
+                'd',
+                'M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z'
+            );
+
+            svg.append(path1, path2);
+
+            thisTD.append(svg)
+            return thisTD;
+        }
+
+        const createDeleteIconCell = (passId) => {
+            const thisTD = document.createElement('td')
+            thisTD.id=`row_deletesvg_${passId}` 
+            thisTD.classList.add('tl','pa3')
+
+            const svgNS = 'http://www.w3.org/2000/svg';
+
+            const svg = document.createElementNS(svgNS, 'svg');
+
+            svg.setAttribute('xmlns', svgNS);
+            svg.setAttribute('width', '16');
+            svg.setAttribute('height', '16');
+            svg.setAttribute('fill', 'currentColor');
+            svg.setAttribute('class', 'bi bi-trash');
+            svg.setAttribute('viewBox', '0 0 16 16');
+
+            svg.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                deletePass(passId);
+            });
+
+            const path1 = document.createElementNS(svgNS, 'path');
+            path1.setAttribute(
+                'd',
+                'M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z'
+            );
+
+            const path2 = document.createElementNS(svgNS, 'path');
+            path2.setAttribute(
+                'd',
+                'M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z'
+            );
+
+            svg.append(path1, path2);
+
+            thisTD.append(svg)
+
+            return thisTD;
+        }
+
+
+        const makeEmailCell = (idName,email,textContent) =>{
+            const thisTD = document.createElement('td')
+            thisTD.id = idName
+            thisTD.classList.add('tl','pa3')
+            const thisAnc = document.createElement('a')
+            thisAnc.href = `mailto:${email}`
+            thisAnc.textContent=textContent
+
+            thisTD.append(thisAnc)
+
+            return thisTD
+        }
+
+        const makeTDCell = (idName,textContent) =>{
+            const thisTD = document.createElement('td')
+            thisTD.id = idName
+            thisTD.classList.add('tl','pa3')
+            thisTD.textContent=textContent
+
+            return thisTD
+        }
+
+        const updateCell =(id,textContent)=>{
+            const updateTD = document.getElementById(id)
+            if(updateTD){
+                updateTD.textContent=textContent
+            }
+        }
+
+        const removeCellIcon =(id)=>{
+            const thisTD = document.getElementById(id)
+            if(thisTD){
+                thisTD.innerHTML=''
+            }
+        }
+
+        const addNewRow =(msg)=>{
+            const newTR = document.createElement('tr')
+            newTR.id = `row_${msg.value.pt_id}`
+            newTR.classList.add('stripe-dark','passrow')
+            
+            <% if(isOnlyMyPasses){ %>
+                newTR.addEventListener('click',completePass(msg.value.pt_id))
+            <% } else { %>
+                newTR.addEventListener('click',viewPass(msg.value.pt_id))
+            <% } %>
+
+            newTR.append(makeTDCell(`row_displayDate_${msg.value.pt_id}`,msg.value.atDateDisplay))
+            newTR.append(makeTDCell(`row_period_${msg.value.pt_id}`, msg.value.on_period))
+            newTR.append(makeTDCell(`row_displayName_${msg.value.pt_id}`, `${msg.value.pname} ${msg.value.lname}`))
+            newTR.append(makeTDCell(`row_reportTo_${msg.value.pt_id}`, msg.value.report_to))
+            newTR.append(makeTDCell(`row_reason_${msg.value.pt_id}`, msg.value.reason))
+            newTR.append(makeTDCell(`row_duration_${msg.value.pt_id}`, (msg.value.duration==='A'?msg.value.duration:msg.value.atTimeDisplay)))
+            newTR.append(makeTDCell(`row_status_${msg.value.pt_id}`,msg.value.pt_status))
+            newTR.append(makeEmailCell(`row_requestor_${msg.value.pt_id}`,msg.value.requestor,msg.value.requestor))
+            newTR.append(makeTDCell(`row_ptid_${msg.value.pt_id}`,msg.value.pt_id))
+            newTR.append(createEditIconCell(msg.value.pt_id))
+            newTR.append(createDeleteIconCell(msg.value.pt_id))
+
+            console.log('Adding Passes')
+            mainTBody.append(newTR)
+        }
+
+        const deleteRow =(msg)=>{
+            const deleteRowBtn = document.getElementById(`row_${msg.value.id}`)
+
+            if(deleteRowBtn){
+                deleteRowBtn.remove()
+            }
+        }
+
+        const updateRow = (msg) =>{
+                updateCell(`row_displayDate_${msg.value.pt_id}`,`${msg.value.atDateDisplay}`)
+                updateCell(`row_period_${msg.value.pt_id}`,`${msg.value.on_period}`)
+                updateCell(`row_reportTo_${msg.value.pt_id}`,`${msg.value.report_to}`)
+                updateCell(`row_reason_${msg.value.pt_id}`,`${msg.value.reason}`)
+                updateCell(`row_duration_${msg.value.pt_id}`,(msg.value.duration==='A'?msg.value.duration:msg.value.atTimeDisplay))
+        }
+        
+        const completeRow = (msg)=>{
+            console.log(`row_status_${msg.value.pt_id}`,'Cmp')
+            updateCell(`row_status_${msg.value.pt_id}`,'Cmp')
+            removeCellIcon(`row_editsvg_${msg.value.pt_id}`)
+            removeCellIcon(`row_deletesvg_${msg.value.pt_id}`)
+            
+            // document.getElementById(`row_editsvg_${msg.value.pt_id}`).innerHTML=''
+            // document.getElementById(`row_deletesvg_${msg.value.pt_id}`).innerHTML=''
+        }
+
+        const socket = io()
+
+         socket.on('PassList',(msg)=>{
+           console.log('Received this Message','PassList',msg)
+           const val=msg.value
+
+           <% if(isOnlyToday){ %>
+           if(val.isToday){ 
+            if(msg.action === 'new'){
+                    addNewRow(msg)
+            } else if(msg.action === 'delete'){
+                    deleteRow(msg)
+            } else if(msg.action === 'update'){
+                    updateRow(msg)
+            } else if(msg.action === 'cmp'){
+                    completeRow(msg)
+            }
+           } else {
+                if(msg.action === 'update'){
+                    deleteRow(msg)
+                }
+           }
+           <% } else { %>
+            if(msg.action === 'new'){
+                    addNewRow(msg)
+            } else if(msg.action === 'delete'){
+                    deleteRow(msg)
+            } else if(msg.action === 'update'){
+                    updateRow(msg)
+            } else if(msg.action === 'cmp'){
+                    completeRow(msg)
+            }
+           <% } %>
+         })
+    </script>
+
 </body>
 </html>

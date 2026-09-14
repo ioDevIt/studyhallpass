@@ -54,12 +54,12 @@ export const deletePassTicket=(userid,passid)=>{
 }
 
 export const getPassTicketViewInfoById=(thisId)=>{    
-    return knexPG('v_class_enrollment_pass_info').select('stud_id','fname','pname','lname','grade','pt_id','clint','classid','duration','at_date','at_time','on_period','report_to','reason','requestor','requestor_signed','out_dt','in_dt','receiver','receiver_signed','pt_status').where({pt_id:thisId})
+    return knexPG('v_class_enrollment_pass_info').select('stud_id','sid','fname','pname','lname','grade','pt_id','clint','classid','duration','at_date','at_time','on_period','report_to','reason','requestor','requestor_signed','out_dt','in_dt','receiver','receiver_signed','pt_status').where({pt_id:thisId})
 }
 
 export const closePassTicketById=(thisId,updateData)=>{    
 // out_dt | in_dt | receiver | receiver_signed 
-    return knexPG('pass_ticket').update(updateData).where({id:thisId}).returning(['id','out_dt','in_dt','receiver','receiver_signed'])
+    return knexPG('pass_ticket').update(updateData).where({id:thisId}).returning(['id','out_dt','in_dt','at_date','receiver','receiver_signed'])
 }
 
 export const getOpenPassTickets=(isOnlyToday=true,whereObjArray=[])=>{    
@@ -82,4 +82,16 @@ export const getOpenPassTickets=(isOnlyToday=true,whereObjArray=[])=>{
     })
 
     return thisSQLKnex
+}
+
+export const updateSeatChange =(seatChangeInfo)=>{
+    console.log('in updateSeatChange')
+    console.log('{classid:seatChangeInfo.classId,sid:seatChangeInfo.sid}',{classid:seatChangeInfo.classId,sid:seatChangeInfo.sid})
+
+    return knexPG('class_enrollment').update({positionx:seatChangeInfo.x,positiony:seatChangeInfo.y}).where({is_active:true,classid:seatChangeInfo.classId,sid:seatChangeInfo.sid}).returning('id')
+}
+
+export const updateEnrollmentStatus = (enrollmentStatusInfo)=>{
+    const thisOutDate= (enrollmentStatusInfo.toStatus=='In'?null:new Date())
+    return knexPG('class_enrollment').update({status:enrollmentStatusInfo.toStatus,outreason:enrollmentStatusInfo.outTypeText,out_time:thisOutDate}).where({is_active:true,classid:enrollmentStatusInfo.classId,sid:enrollmentStatusInfo.scanid}).returning(['id','sid','status','outreason','out_time'])    
 }

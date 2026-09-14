@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous"> -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css"/>
+   <style>
+        .thinking-splash {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.8);
+            }
+
+            .thinking-box {
+            padding: 1.5rem 2rem;
+            text-align: center;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.2);
+            font-size: 1.25rem;
+            color: #333;
+            }
+
+            .d-none {
+            display: none !important;
+            }
+
+            .w-30 {
+            width: 30%;
+            }
+
+            @media (max-width: 768px) {
+                .w-30 {
+                    width: 100%;
+                }
+            }
+
+            #requestorRequestorSignDiv {
+                background-color: transparent;
+                border-color: transparent;
+                color: inherit;
+            }
+
+            .success-flash {
+                animation: successFlash 5s ease-in-out forwards;
+            }
+
+            @keyframes successFlash {
+                0% {
+                    background-color: transparent;
+                    border-color: transparent;
+                    color: inherit;
+                }
+
+                25%,
+                65% {
+                    background-color: #d1e7dd; /* Bootstrap alert-success background */
+                    border-color: #a3cfbb;
+                    color: #0f5132;             /* Bootstrap alert-success text */
+                }
+
+                100% {
+                    background-color: transparent;
+                    border-color: transparent;
+                    color: inherit;
+                }
+            }
+    </style>
+ </head>
+<body>
+    <!-- Splash screen -->
+    <div id="thinkingSplash" class="thinking-splash d-none">
+    <div class="thinking-box">
+        <div id="thinkingText">thinking</div>
+        <div class="spinner-border spinner-border-sm mt-2"></div>
+    </div>
+    </div>
+    <!-- Alert Modal -->
+    <div id="modal" class="dn fixed top-0 left-0 w-100 h-100 bg-black-50 items-center justify-center">
+    <div class="bg-white pa4 br3 shadow-5">
+        <h2 id="modalTitle" class="f4">Modal Title</h2>
+        <p  id="modalText" >Your content goes here.</p>
+
+        <button id="closeModal" class="f6 link dim br2 ph3 pv2 mb2 dib white bg-red">
+        Close
+        </button>
+    </div>
+    </div>
+
+    <div class="cf">
+        <div class="fl w-5 w-10-ns tc pv5"></div>
+        <div class="fl w-100 w-80-ns tc pv5">
+            <header class="bg-white black-80 tc pv4 avenir">
+                <h1 class="mt2 mb0 baskerville i fw1 f1"><%= title %></h1>
+                <h2 class="mt2 mb0 f6 fw4 ttu tracked"><%= subtitle %></h2>
+                <nav class="bt bb tc center mt4">
+                   <a class="f6 f5-l link bg-animate black-80 hover-bg-light-yellow dib pa3 ph4-l" href="/logout">Logout</a>
+                </nav>
+            </header>
+            <div class="pa4">
+            <div class="overflow-auto">
+                <table class="f6 w-100 mw8 center" cellspacing="0">
+                    <thead>
+                        <tr class="stripe-dark">       
+                        <th class="fw6 tl pa3 bg-white">Name</th>
+                        <th class="fw6 tl pa3 bg-white">Description</th>
+                        <th class="fw6 tl pa3 bg-white"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="mainTBody">
+                        <tr  class="stripe-dark"><td class="tl pa3">Sync Classes</td><td class="tl pa3">Syncs Classes from Veracross with Database</td>
+                            <td class="tl pa3">
+                                <a id="syncClassesBtn" class="f6 link dim br2 ba ph3 pv2 mb2 dib dark-green" href="#0">Sync</a>
+                            </td>
+                        </tr>
+                        <tr  class="stripe-dark"><td class="tl pa3">Sync Enrollment</td><td class="tl pa3">Syncs Enrollment from Veracross with Database</td>
+                            <td class="tl pa3">
+                                <a id="syncEnrollmentBtn" class="f6 link dim br2 ba ph3 pv2 mb2 dib dark-green" href="#0">Sync</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const deletePass=(thisPassId)=>{
+            showThinking('eating',4)
+            const postid="?"
+                const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+
+                axios.post('/deletePass',{
+                    search:new Date(),
+                    postid:postid
+                },rsConfig).then((rsp)=>{                   
+                    const rspData = rsp.data
+                    console.log('rspData',rspData)
+
+                    hideThinking()
+
+                    if(rspData.status=='Ok'){
+                        document.getElementById(`row_${thisPassId}`).remove()
+                    }
+                    else{
+                        showAlertModal('Sync Issue','Could Not sync')
+                    }
+                })
+                .catch((e)=>{console.log(e);hideThinking()})
+                .finally(()=>{
+                    hideThinking()
+                })
+        }
+    </script>
+
+    <script>
+        const syncClassesBtn = document.getElementById('syncClassesBtn')
+        const syncEnrollmentBtn = document.getElementById('syncEnrollmentBtn')
+        const modal = document.getElementById('modal')
+        const closeModal=document.getElementById('closeModal')
+        const modalTitle = document.getElementById('modalTitle')
+        const modalText = document.getElementById('modalText')
+
+        modal.classList.add("dn");
+
+        const showAlertModal=(thisModalTitle,thisModalMessage)=>{
+            modalTitle.textContent = thisModalTitle
+            modalText.textContent = thisModalMessage
+            // modal.classList.remove("dn");
+            modal.classList.add("flex");
+        }
+
+        const hideAlertModal=()=>{
+            modal.classList.remove("flex")
+        }
+
+        closeModal.addEventListener('click',hideAlertModal)
+        modal.addEventListener('click',hideAlertModal)
+    </script>
+
+    <script>
+         const splash = document.getElementById("thinkingSplash")
+        let thinkingTimer;        
+
+        const showThinking = (startingWord,numofPauseDots) => {
+        const thisStartingWord = (startingWord?startingWord:'thinking')
+        const thisNumOfPauseDots = (numofPauseDots?numofPauseDots:6)
+        let thinkingDots = 0
+        splash.classList.remove("d-none");
+
+        thinkingDots = 0;
+        thinkingText.textContent = thisStartingWord;
+
+        thinkingTimer = setInterval(() => {
+            thinkingDots = (thinkingDots + 1) % thisNumOfPauseDots;
+            thinkingText.textContent = `${thisStartingWord}${".".repeat(thinkingDots)}`;
+        }, 500);
+        };
+
+        const hideThinking = () => {
+        clearInterval(thinkingTimer);
+        splash.classList.add("d-none");
+        };
+
+        const initSettings=()=>{
+            hideAlertModal()
+        }
+
+        initSettings()        
+    </script>
+
+    <script>
+        syncClassesBtn.addEventListener('click',(e)=>{
+            event.preventDefault()
+            const postid="?"
+            const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+
+            showThinking()
+            axios.post('/updatedata/updateClasses',{
+                search:{set:true},
+                postid:postid
+            },rsConfig).then((rsp)=>{
+                console.log('rsp',rsp)
+                const rspData = rsp.data
+
+                console.log('rspData',rspData)
+                
+                hideThinking()
+                // setNewValues(rspData)
+            })
+            .catch((e)=>{console.log(e)})
+        })
+
+        syncEnrollmentBtn.addEventListener('click',(e)=>{
+            event.preventDefault()
+            const postid="?"
+            const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+
+            showThinking()
+            axios.post('/updatedata/updateEnrollments',{
+                search:{set:true},
+                postid:postid
+            },rsConfig).then((rsp)=>{
+                console.log('rsp',rsp)
+                const rspData = rsp.data
+
+                console.log('rspData',rspData)
+                
+                hideThinking()
+                // setNewValues(rspData)
+            })
+            .catch((e)=>{console.log(e)})
+        })
+    </script>
+</body>
+</html>

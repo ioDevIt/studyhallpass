@@ -615,6 +615,12 @@
             console.log('destinationTxt.value',destinationTxt.value)
             console.log('reasonTxtArea.value',reasonTxtArea.value)
 
+            console.log('fromTime.checkValidity()',fromTime.checkValidity())
+
+            console.log('return Value',(nameTxt.value!=='' && gradeSpan.textContent!=='' && toReportOnDate.value!=='' && atPeriodSpan.textContent!==periodTextDefault
+               && (fromAll.checked || fromTime.value!=='') && fromTime.checkValidity() && destinationTxt.value!=='' && reasonTxtArea.value!==''
+            ))
+
             return (nameTxt.value!=='' && gradeSpan.textContent!=='' && toReportOnDate.value!=='' && atPeriodSpan.textContent!==periodTextDefault
                && (fromAll.checked || fromTime.value!=='') && fromTime.checkValidity() && destinationTxt.value!=='' && reasonTxtArea.value!==''
             )

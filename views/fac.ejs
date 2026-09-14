@@ -3,19 +3,596 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><% title %></title>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script>
+    <title><%= title %></title>
+
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">    
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    
+    <style>
+        #studentDiv{
+            position: relative;
+        }
+
+        #seatingDiv{
+            position: relative;
+        }
+
+        .seatAllDiv{
+            font-size: 12;
+            border: 1px black solid;
+            border-radius: 5%;
+            
+            padding: 5px;
+            background-color: aliceblue;
+        }
+
+        .seatNoXYDiv{
+            display: inline-block;
+        }
+
+        .seatXYDiv {
+            position:absolute;
+        }
+
+        .in{
+            background-color: rgb(0,0,0,0.2);
+        }
+
+        .out{
+            background-color: rgb(255, 99, 71,0.4);
+
+        }
+
+        .onPass{
+            border: 3px solid green;
+        }
+
+        .btnSelected{
+            background-color: cadetblue;
+        }
+
+        .small-text {
+        font-size: 0.7rem;
+        }
+
+        .absent {
+            transform-origin: center;
+            transform: rotate(180deg);
+            color: red;        
+        }
+
+    </style>
 </head>
 <body>
+    <script>
+        const classInfo=<%- JSON.stringify(classInfo)  %>;
+        const studentsObj={}
+        const studentUpdateList=[]
+        const students =[]
+
+        for(const [key,value] of Object.entries(classInfo.students)){            
+            students.push(value)
+        }
+</script>
+
+
     <div class="container text-center mt-4">
-            <h1>Centered Header Text</h1>
-    <p>Centered text on the next line</p>
+            <h1 id="header1a" class="text-center"><%= classInfo.classid %></h1>
+        <input id="reasonTypeInput"  hidden/>
+        <h2 class="fs-4">Students Out (<span id="studentsOutText">???</span>)</h2>
+
+    <div class="row gx-0">
+        <div class="col-2 ps-0">      
+                <div class="input-group">
+                    <span class="input-group-text" id="basic-addon3">Scan</span>
+                    <input id="scanInput" type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3 basic-addon4">
+                </div>
+        </div>
+        <div class="col-3 ps-0"><button id="bathroomBtn" type="button" class="btn btn-primary ms-1">Bathroom</button>&nbsp;<button id="passBtn" type="button" class="btn btn-primary">Pass</button>
+            <button id="printerBtn" type="button" class="btn btn-primary">Printer</button>
+        </div>
+        <div class="col-3">
+            <input id="outReasonInput" type="text" class="form-control" placeholder="Other Reason (at least 3 chars.)" aria-label="Other Reason">
+        </div>
+        <div class="col-auto ps-1"><button id="otherBtn" type="button" class="btn btn-primary">Other</button></div>
+    </div>
+
     <hr />
+    <div id="passesDiv" class="d-flex justify-content-start gap-2 py-0">
+        Passes:
+        <% passes.forEach((thisPass)=>{ %>
+            <button id="passBtn_<%= thisPass.pt_id %>" type="button" class="btn btn-success small-text py-0 passbtn" onclick="view(<%= thisPass.pt_id %>)" data-sid="<%=thisPass.sid %>">
+                <%= `${thisPass.nameDisplay} ${thisPass.whenDisplay}` %>
+            </button>
+        <% }) %>        
     </div>
     <hr />
-    <div id="seating">
+    </div>
+    <div id="seatingDiv">
 
     </div>
+ 
+    <script>
+        const header1a=document.getElementById('header1a')
+        const seatingDiv = d3.select('#seatingDiv')
+        const panelW=window.innerWidth
+        const panelH=window.innerHeight
+
+        const inColor='rgb(0,0,0,0.2)'
+        const outColor='rgb(255, 99, 71)'
+
+        const studentIdRegEx = /^[23]\d{5}$/;
+
+        const bathroomBtn = document.getElementById('bathroomBtn')
+        const passBtn = document.getElementById('passBtn')
+        const printerBtn = document.getElementById('printerBtn')
+        const outReasonInput= document.getElementById('outReasonInput')
+        const otherBtn= document.getElementById('otherBtn')
+        
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+
+<script>
+        const dragHandler = d3.drag()
+        // .on('start',()=>{console.log('test'); (dragstarted())})
+        .on('start',dragstarted)
+        .on('drag',dragged)
+        .on('end',dragended)
+
+        console.log(students)
+
+        let lastStudentWidth = 0
+        
+        const seatDiv = seatingDiv.selectAll('div.seatDiv').data(students)
+                    .join('div')
+                            .attr('id',(d)=>(`${d.sid}_div`))
+                            .attr('class',(d)=>{
+                                let thisClass='seatAllDiv seatNoXYDiv '
+                                if(d.userType==='F'){thisClass+= 'green'}
+                                thisClass+= (d.ce_status==='In')?'in':'out'
+                                thisClass+= (d.passes.length!==0)?' onPass':''
+                                thisClass+= (d.position.y!==0)?' seatXYDiv':''
+                                thisClass+= (d.attendance.status==='A')?' absent':''
+                                
+                                return thisClass
+                            })
+                            .attr('data-id',d=>d.sid)
+
+                            .style('top',(d,i)=>{console.log('d.position.y',d.position.y); return `${d.position.y}px`})
+                            .style('left',(d,i)=>{return `${d.position.x}px`})
+
+        seatDiv.selectAll('.sname').data((d)=>{return [d]}).join('div')
+            .attr('class','sname').text((d)=>{return `${d.fname} ${d.lname}`})
+            .append('hr')
+            // .style('opacity',1)
+
+        const seatStatusDivs = seatDiv.selectAll('.status').data((d,i)=>{return [d]}).join('div')
+            .attr('class','status')
+        
+        seatStatusDivs.append('span')
+            .attr('id',(d)=>{return `${d.sid}_status`})
+            .attr('class','inOutStatus')
+            .text((d)=>{
+                    if(d.ce_status==='Out'){return `${d.outreason} ${d.out_time_display}`}
+                    if(d.attendance.status==='A'){return `Absent`}
+                    return 'In'
+                })
+
+        seatStatusDivs.append('span')
+            .attr('class','attendStatus')
+            .text((d)=>{
+                    if(d.attendance.status==='E'){return `(Early - ${d.attendance.earlyDismissalDisplay})`}
+                    return ''
+                })
+
+        // seatStatusDivs.text((d)=>{
+        //     if(d.ce_status==='Out'){return `${d.outreason} ${d.out_time_display}`}
+        //     if(d.attendance.status==='A'){return `Absent`}
+        //     return 'In'
+        // })
+    
+
+
+        seatDiv.selectAll('.time').data((d,i)=>{return [d]}).join('div')
+            .attr('id',(d)=>{return `${d.sid}_time`}).attr('class','time')
+            .text((d)=>{return (d.outDisplay)})
+
+        seatDiv
+            // .on('click',()=>{console.log('test')})
+            .call(dragHandler)
+
+
+
+
+        const setDisplayStudentsOut = (totalStudentsOut)=>{
+            studentsOutText.textContent=totalStudentsOut
+            studentsOutText.style.color = (totalStudentsOut>0? outColor : inColor )
+        }
+
+        const setStudentsOut = ()=>{  
+            console.log('in setStudentsOut')    
+            const totalStudentsOut = students.reduce((acc,cur)=>{
+                return acc+(cur.ce_status!=='In'?1:0)
+            },0)
+
+            console.log('totalStudentsOut',totalStudentsOut)
+            setDisplayStudentsOut(totalStudentsOut)
+        }
+
+        const setZeroPositions = () => {
+            let previousX = 0
+            let previousY = 0
+            let previousW=0
+            let previousH=0
+            const blockYMargin = 10
+
+            let maxY=0
+            let currentStudentsOut=0
+
+            const studentContainersArray = document.getElementsByClassName('containerStudentDivs')
+
+            for(let i=0;i<studentContainersArray.length;i++){
+                const clientRect= studentContainersArray[i].getBoundingClientRect()
+
+                // console.log('************')
+                // console.log(studentContainersArray[i].style.top)
+
+                if(studentContainersArray[i].style.top==='0px' && studentContainersArray[i].style.left==='0px'){
+                    studentContainersArray[i].style.top = `${previousY}px`
+                    studentContainersArray[i].style.left = `${previousX}px`
+
+                    if(studentContainersArray[i].offsetHeight>maxY){
+                        maxY = studentContainersArray[i].offsetHeight
+                    }
+
+                 if((previousX+studentContainersArray[i].offsetWidth + studentContainersArray[i].offsetWidth)>panelW){
+                        previousX=0
+                        previousY+=maxY+blockYMargin
+                    }
+                    else{
+                        previousX+=studentContainersArray[i].offsetWidth
+                    }
+                }
+            }            
+        }
+
+
+        setZeroPositions()
+        setStudentsOut()
+
+
+        function dragstarted(event, d) {
+            console.log('Drag Started')
+            console.log(event.x, event.y)
+            console.log(this)
+            console.log(event)
+            console.log(d)
+
+            console.log('this Id', this.id)
+            this.style.top = `${event.y}px`
+            this.style.left = `${event.x}px`
+            this.classList.add('seatXYDiv')
+            this.classList.remove('seatNoXYDiv')
+        }
+
+        function dragged(event, d) {
+            console.log('Dragged')            
+            console.log(d)
+            console.log(d.position.x, d.position.y)
+            console.log(event.x, event.y)
+
+            const newX=(d.position.x-event.x)
+            const newY=(d.position.y-event.y)
+
+            console.log(newX,newY)
+
+            const thisD3 = d3.select(this)
+            thisD3.style('top',`${event.y}px`) // `translate(${event.x},${event.y})`)
+            thisD3.style('left',`${event.x}px`)
+        }
+
+        function dragended(event, d) {
+            console.log('Drag Ended')
+            console.log('event',event)
+
+            console.log(d)
+            console.log(d.position.x, d.position.y)
+            console.log(event.x, event.y)
+
+            const thisClassId = header1a.textContent
+            const dataToSend={sid:d.sid,classId:thisClassId,x:Math.round(event.x),y:Math.round(event.y)}
+
+            console.log('dataToSend',dataToSend)
+            sendDragData(dataToSend)
+        }
+
+        const sendDragData=(dataSend)=>{
+
+            console.log('dataSend',dataSend)
+
+            const rsConfig={headers:{"X-XSRF-TOKEN":'cxData'},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+
+            console.log(`Sending -------------${JSON.stringify(dataSend)}-------------`)
+            console.log(`-------------/seatChange-------------`)
+
+            axios.post('/seatChange',{
+            dataSend
+            },rsConfig).then((rsp)=>{
+                console.log('rsp',rsp)
+            })
+            .catch((e)=>{console.log(e)})
+        }
+
+
+
+        const runScan = () =>{
+            console.log('Run Scan',`${scanInput.value}_status`)
+            if(scanInput.value.length===6 &&  studentIdRegEx.test(scanInput.value)){
+                const thisStudentEl = document.getElementById(`${scanInput.value}_status`)
+                if(thisStudentEl){
+                    console.log('Current Student Status ',thisStudentEl.textContent )
+                    // if status of element is In then
+                    const thisStudentStatus = thisStudentEl.textContent
+
+                    showHideReasons(true)
+                    if((thisStudentStatus==='In') && reasonTypeInput.value!==''){
+                        sendScanData({toStatus:'Out',outTypeText:reasonTypeInput.value}) // (reasonTypeInput.value==='Other'?`${reasonTypeInput.value}: ${outReasonInput.value}`:reasonTypeInput.value)})
+                    }
+                    else if(thisStudentStatus!=='In'){
+                        sendScanData({toStatus:'In',outTypeText:''})
+                    }       
+                }else{
+                    console.log(`check ${scanInput.value}_status`)
+                }         
+            }
+            else{
+                showHideReasons(false)
+                bathroomBtn.classList.remove('btnSelected')
+                passBtn.classList.remove('btnSelected')
+                otherBtn.classList.remove('btnSelected')
+                outReasonInput.value=''
+                reasonTypeInput.value=''
+            }
+        }
+
+
+        
+        scanInput.addEventListener('input',()=>{            
+            runScan()
+        })
+
+        outReasonInput.addEventListener('input',()=>{
+            showHideOtherReasonBtn(outReasonInput.value.length>3)
+        })
+
+        const clearScanReasons = () =>{
+            bathroomBtn.classList.remove('btnSelected')
+            passBtn.classList.remove('btnSelected')
+            printerBtn.classList.remove('btnSelected')
+            otherBtn.classList.remove('btnSelected')
+            outReasonInput.value=''
+        }
+
+        const showHideReasons = (shouldShow) =>{
+            const displayType= (shouldShow?'':'none')
+            bathroomBtn.style.display=displayType
+            passBtn.style.display=displayType
+            printerBtn.style.display=displayType
+            outReasonInput.style.display=displayType
+        }
+
+        const showHideOtherReasonBtn =(shouldShow)=>{           
+            otherBtn.style.display=(shouldShow?'':'none')
+        }
+
+        bathroomBtn.addEventListener('click',()=>{
+            console.log('Clickec bathroomBtn')
+            clearScanReasons()
+            bathroomBtn.classList.add('btnSelected')    
+            reasonTypeInput.value='Bathroom'
+            runScan()
+        })
+
+        passBtn.addEventListener('click',()=>{
+            clearScanReasons()
+            passBtn.classList.add('btnSelected')
+            reasonTypeInput.value='Pass'
+            runScan()
+        })
+
+        printerBtn.addEventListener('click',()=>{
+            clearScanReasons()
+            printerBtn.classList.add('btnSelected')
+            reasonTypeInput.value='Printer'
+            runScan()
+        })
+
+        otherBtn.addEventListener('click',()=>{
+            otherBtn.classList.add('btnSelected')        
+            reasonTypeInput.value=`Other: ${outReasonInput.value}`
+            runScan()
+            clearScanReasons()
+        })
+        
+
+        const sendScanData=(scannedData)=>{
+            const currentStatusEl = document.getElementById(`${scanInput.value}_status`)
+
+            console.log('scannedData',scannedData)
+            // return
+
+            if(!(currentStatusEl)){console.log('No El');return}
+
+            const currentStatus = currentStatusEl.textContent
+            const dataSend = {scanid:scanInput.value,classId:header1a.textContent
+                ,toStatus:scannedData.toStatus
+                // ,outType:scannedData.outType
+                ,outTypeText:scannedData.outTypeText
+                }
+
+            // ,toStatus:(currentStatus==='In'?'Out':'In')
+
+            console.log('thisScanData',dataSend)
+
+            const rsConfig={headers:{"X-XSRF-TOKEN":'cxData'},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+
+            console.log(`Sending -------------${JSON.stringify(dataSend)}-------------`)
+            // console.log(`-------------/api/ep_send_change-------------`)
+
+            axios.post('/setclassenrollmentstatus',{dataSend}
+            ,rsConfig).then((rsp)=>{
+                console.log('rsp',rsp)
+                const rspData = rsp.data
+                const updateInfo = rspData
+                console.log('updateInfo',updateInfo)
+                
+                if(rspData.status==='Ok')
+                {
+                    const thisStudentEl = document.getElementById(`${updateInfo.scanid}_div`)
+                    const thisStudentStatusEl = document.getElementById(`${updateInfo.scanid}_status`)
+                    const thisStudentTimeEl = document.getElementById(`${updateInfo.scanid}_time`)           
+
+                    console.log(`${updateInfo.scanid}_status`)
+                    console.log('updateInfo.outStatus',updateInfo.outStatus)
+
+                    thisStudentStatusEl.textContent = '' // updateInfo.outStatus
+                    if(updateInfo.outStatus==="Out"){
+                        thisStudentEl.classList.remove('in')
+                        thisStudentEl.classList.add('out')
+                        studentsOutText.textContent=((studentsOutText.textContent*1)+1)
+                        thisStudentStatusEl.textContent=`${updateInfo.outreason} ${updateInfo.outTime}`
+                        // thisStudentTimeEl.textContent=`${updateInfo.outreason} ${updateInfo.outTime}`
+                    }else{
+                        thisStudentEl.classList.remove('out')
+                        thisStudentEl.classList.add('in')
+                        thisStudentStatusEl.textContent = 'In'
+                        studentsOutText.textContent=((studentsOutText.textContent*1)-1)
+                        thisStudentTimeEl.textContent=''
+                    }
+
+                    bathroomBtn.classList.remove('btnSelected')
+                    passBtn.classList.remove('btnSelected')
+                    otherBtn.classList.remove('btnSelected')
+                    reasonTypeInput.value=''
+                    outReasonInput.value=''
+                    scanInput.value=''
+
+                    showHideReasons(false)    
+                    showHideOtherReasonBtn(false)
+                }
+            })
+            .catch((e)=>{console.log(e)})
+        }
+
+
+        const view=(thisPassId)=>{
+            console.log('Clicked')
+            window.open(`/viewPass/${thisPassId}`, '_blank')
+        }
+
+
+
+    showHideReasons(false)    
+    showHideOtherReasonBtn(false)
+    </script>
+
+
+    <script>
+        const addNewPassBtn=(msg)=>{
+                const newBtn = document.createElement('button')
+                newBtn.id = `passBtn_${msg.value.pt_id}`
+                newBtn.classList.add('btn','btn-success','py-0','small-text','passbtn')                
+                newBtn.textContent=`${msg.value.fname} ${msg.value.lname} ${msg.value.whenDisplay}`
+                newBtn.dataset.sid=msg.value.sid
+                newBtn.addEventListener('click',view(msg.value.pt_id))
+
+                const toAddOnPass = document.getElementById(`${msg.value.sid}_div`)
+
+                if(!(toAddOnPass.classList.contains('onPass'))){toAddOnPass.classList.add('onPass')}
+
+                console.log('Adding Passes')
+                passesDiv.append(newBtn)            
+        }
+
+        const deletePassBtn = (msg) =>{
+            const deleteBtn = document.getElementById(`passBtn_${msg.value.id}`)
+            const thisDeleteBtnSID = deleteBtn.dataset.sid
+
+            if(deleteBtn){
+                deleteBtn.remove()
+            }
+
+            const currentPassBtn = document.getElementsByClassName('passbtn')
+            let moreStudentPassExist = false
+
+            for(let i=0;i<currentPassBtn.length;i++){
+                console.log(`${currentPassBtn[i].dataset.sid}===${thisDeleteBtnSID}`,currentPassBtn[i].dataset.sid===thisDeleteBtnSID)
+                if(currentPassBtn[i].dataset.sid===thisDeleteBtnSID){
+                    moreStudentPassExist=true 
+                }
+            }
+
+            if(!moreStudentPassExist){
+                const thisStudentSeat = document.getElementById(`${thisDeleteBtnSID}_div`)
+                thisStudentSeat.classList.remove('onPass')
+            }
+        }
+
+        const socket = io();
+
+        //  socket.on('<%= classInfo.classid %>',(msg)=>{
+        //    console.log('Received this Message',msg)
+
+        //    if('new' in msg){
+        //         setPassBtns(msg.new)
+        //    }
+        //  })
+
+         socket.on('PassList',(msg)=>{
+           console.log('Received this Message','PassList',msg)
+           console.log('(header1a.textContent!==msg.value.classid)',(header1a.textContent!==msg.value.classid),header1a.textContent,msg.value.classid)
+
+           console.log((!msg.value.isToday) , (header1a.textContent!==msg.value.classid),((!msg.value.isToday) || (header1a.textContent!==msg.value.classid)))
+        //    if((!msg.value.isToday)){
+        //     console.log('No Action')
+        //     return
+        //    }
+
+           console.log('msg.value.isToday && (header1a.textContent===msg.value.classid)',msg.value.isToday && (header1a.textContent===msg.value.classid))
+           console.log("(msg.action === 'update')",(msg.action === 'update'))
+           if(msg.value.isToday && (header1a.textContent===msg.value.classid)){
+            if(msg.action === 'new'){
+                    addNewPassBtn(msg)
+            } else if(msg.action === 'delete' || msg.action==='cmp'){
+                    deletePassBtn(msg)
+            } else if(msg.action === 'update'){
+                const updateBtn = document.getElementById(`passBtn_${msg.value.pt_id}`)
+                if(updateBtn){
+                    updateBtn.textContent = `${msg.value.fname} ${msg.value.lname} ${msg.value.whenDisplay.trim()}`
+                }
+                else{
+                    addNewPassBtn(msg)
+                }
+            }
+           } else {
+                if(msg.action === 'update'){
+                    const updateBtn = document.getElementById(`passBtn_${msg.value.pt_id}`)
+                    if(updateBtn){
+                        deletePassBtn(msg)
+                    }                   
+                }
+                else {
+                    console.log('No Action')
+                    return
+                }
+           }
+         })
+
+    </script>
+
 </body>
 </html>
