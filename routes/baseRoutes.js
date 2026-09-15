@@ -35,6 +35,7 @@ router.use('/',(req,res,next)=>{
 
 router.get('/',(req,res)=>{
     console.log('--------------------- Get / ---------------------')
+    console.log(req.user)
     setMenu(req,res)
 
     // console.log('User',req.user)
@@ -82,6 +83,10 @@ router.get('/listtodays',(req,res)=>{
 
 router.get('/listall',(req,res)=>{
     getOpenPasses(req,res,"OPEN PASSES",false,false,[])
+})
+
+router.get('/listallopen',(req,res)=>{
+    getOpenPasses(req,res,"OPEN PASSES",false,false,[{type:'where',value:{pt_status:'New'}}])
 })
 
 router.post('/getPassStudentList',(req,res)=>{

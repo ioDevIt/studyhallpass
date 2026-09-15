@@ -59,7 +59,7 @@ export const getPassTicketViewInfoById=(thisId)=>{
 
 export const closePassTicketById=(thisId,updateData)=>{    
 // out_dt | in_dt | receiver | receiver_signed 
-    return knexPG('pass_ticket').update(updateData).where({id:thisId}).returning(['id','out_dt','in_dt','at_date','classid','receiver','receiver_signed'])
+    return knexPG('pass_ticket').update(updateData).where({id:thisId}).returning(['id','out_dt','in_dt','at_date','receiver','receiver_signed'])
 }
 
 export const getOpenPassTickets=(isOnlyToday=true,whereObjArray=[])=>{    

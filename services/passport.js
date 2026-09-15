@@ -4,13 +4,16 @@ import GoogleStrategy from "passport-google-oauth20"
 import dotEnvMod from "../modules/Mules/dotenvModule.js"
 import vapiSSO from "../modules/Mules/VAPIUserInfo.js"
 import {insertLog} from "../modules/Mules/logsModule.js"
-import {passStatic,getUserRoles} from "../modules/Mules/accessModule.js"
+import {passStatic,getUserRoles,isUserTrackSHAttendance} from "../modules/Mules/accessModule.js"
 
 
 import {trace} from "../modules/Mules/logsModule.js"
 
 const dotEnv = dotEnvMod()
 const vapiSSOFn=vapiSSO()
+
+const accessPasses=['syamashiro@iolani.org','sweaver@iolani.org','kasato@iolani.org','bchun@iolani.org','mdaggett@iolani.org','larafeld@iolani.org','ahiga@iolani.org','kkadofukuda@iolani.org','akaonohi@iolani.org','nlau@iolani.org','hlee@iolani.org','kmarks@iolani.org','anakagawa@iolani.org','spark@iolani.org','csakamoto@iolani.org','ptom@iolani.org','nhue@iolani.org','eyamamoto@iolani.org','lyoneda@iolani.org']
+
 
 const setPassport =(passport)=>{
 
@@ -67,7 +70,7 @@ passport.use(new GoogleStrategy({ clientID: dotEnv.goog.googleClientID, clientSe
 
         if(profile.provider==="google"){
             searchAddObj.type="G"
-            searchAddObj.id = profile._json.email.replace(`@${profile._json.hd}`,'').trim()
+            searchAddObj.id =  profile._json.email.replace(`@${profile._json.hd}`,'').trim()
             searchAddObj.email=profile._json.email
             searchAddObj.domain=profile._json.hd
             searchAddObj.VOnly={Roles:[]}
@@ -142,7 +145,7 @@ passport.use(new OAuth2Strategy({
 
         if(thisInfo.isVeracross){
             searchAddObj.type="V"
-            searchAddObj.id = thisInfo.data.sub
+            searchAddObj.id = 123980 // thisInfo.data.sub
             searchAddObj.email=thisInfo.data.email
             searchAddObj.domain="veracross"
             searchAddObj.VOnly={Roles:thisInfo.data.roles}
@@ -152,10 +155,13 @@ passport.use(new OAuth2Strategy({
             searchAddObj.grade = null
             searchAddObj.gates={}
 
-            // if(testUser){ // Add Student as Role for Testing
-            //     searchAddObj.Roles.push('Student')
-            // }
-                    
+            if(searchAddObj.Roles.includes('Faculty') || searchAddObj.Roles.includes('Staff'))
+                { 
+                    // accessPasses.includes(searchAddObj.email) || 
+                    if(accessPasses.includes(searchAddObj.email) || await isUserTrackSHAttendance(searchAddObj.id)){ // Add Student as Role for Testing
+                        searchAddObj.Roles.push('Passer')
+                    }
+                }    
 
             // if(searchAddObj.Roles.includes('Student')){
             //     console.log('Check Fix')

@@ -1,8 +1,10 @@
 import {getAllRBACByGeneralRoleIdAndUser,getAllRBACByUser,getAllRBAC,getAllRoleTypes,allowThisGradeAccess,getGradeAccessDB,setGradeAccessDB} from '../../models/accessModel.js'
 import { sortBy } from '../../tools/tools.js'
+import {getCurrentSchoolYearForVera} from './helpersModule.js'
+import {getClassPermissionsByPersonIdSchoolYear} from './VAPIReader.js'
 
 const VRolesStaffParent =['Staff1','Parent','Staff']
-const accessPasses=['syamashiro@iolani.org','sweaver@iolani.org','laraishiraishi@iolani.org','lhadlock@iolani.org','zzz2601@iolani.org']
+const accessPasses=['syamashiro@iolani.org','sweaver@iolani.org','kasato@iolani.org','bchun@iolani.org','mdaggett@iolani.org','larafeld@iolani.org','ahiga@iolani.org','kkadofukuda@iolani.org','akaonohi@iolani.org','nlau@iolani.org','hlee@iolani.org','kmarks@iolani.org','anakagawa@iolani.org','spark@iolani.org','csakamoto@iolani.org','ptom@iolani.org','nhue@iolani.org','eyamamoto@iolani.org','lyoneda@iolani.org']
 
 const passVRolesStaffParent=(thisUserInfo)=>{
     const passFilter = VRolesStaffParent.filter((r)=>{
@@ -29,7 +31,7 @@ export const passStatic = (thisPassString) =>{
 export const passFirstFence=(thisUserInfo)=>{
         // console.log('thisUserInfo',thisUserInfo)
     // Uncomment the one to use
-        return (thisUserInfo.Roles.includes('Parent') || ['mmorioka@iolani.org','skimball@iolani.org'].includes(thisUserInfo.email))  //  || thisUserInfo.id ===129863
+        return (thisUserInfo.Roles.includes('Passer'))  //  || thisUserInfo.id ===129863
         // return (thisUserInfo.Roles.includes("ADMIN"))
         // return thisUserInfo.Roles.includes('ADMIN') // static check   || passStatic(thisUserInfo.email)
         // return passStatic(thisUserInfo.email)  // static check
@@ -132,6 +134,14 @@ export const setGradeAccess = (res,grade,value)=>{
     .catch((err)=>{
         res.json(err)
     })
+}
+
+export const isUserTrackSHAttendance= async (thisPID)=>{
+    const thisSchoolYr = getCurrentSchoolYearForVera()
+    const permissionForTheseClasses = await getClassPermissionsByPersonIdSchoolYear(thisPID,thisSchoolYr)
+    const shClassesByViewAttendance = permissionForTheseClasses.filter((r)=>(r.view_attendance && (r.class.description.substring(0,2)==='SH')))
+
+    return (shClassesByViewAttendance.length>0)
 }
 
 export const getClassesAccess = async (user )=>{

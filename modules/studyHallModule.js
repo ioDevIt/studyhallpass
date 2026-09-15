@@ -10,6 +10,9 @@ import {sendEmail,newPassEmailTemplate,updatedPassEmailTemplate,sendEmailTest} f
 import {sendSocketMessage} from './Mules/socketHandler.js'
 import {getTodaysAttendance} from './Mules/VAPIReader.js'
 
+const isStudentSelectionFormatOk = /\[\d{1,2}\] - \d{1,3}$/
+const isNumericOnly =/^[\d{1,3}]$/
+
 
 export const alertRoomAboutPassForToday =(thisAction,thisPassInfo)=>{
     console.log('thisPassInfo',thisPassInfo)
@@ -46,7 +49,7 @@ export const setClassPage = (req,res,thisClassId)=>{
         const passes=[]
         const todayDate=formatInTimeZone(new Date(),'Pacific/Honolulu','yyyy-MM-dd')
 
-        const theseStudentPIDs = [101805]  // 101805
+        const theseStudentPIDs = []  // 101805
         
         rsp.forEach((r,i)=>{
             if(!(r.pid in theseStudentPIDs)){theseStudentPIDs.push(r.pid)}
@@ -107,7 +110,7 @@ export const setClassPage = (req,res,thisClassId)=>{
                     ,sid:r.sid,need_review:r.need_review,pt_bywho:r.pt_bywho
                 }
 
-                if(todayDate===atDateDiplay){
+                if(todayDate===atDateDiplay && thisPass.pt_status==='New'){
                 classInfo.students[r.sid].passes.push(thisPass)
                 passes.push(thisPass)
                 }
@@ -136,6 +139,13 @@ export const selectNameForPass=(req,res,thisSearch)=>{
 export const getStudyHallsForThisStudentOnThisDate=(req,res,thisSearch)=>{
     // get student pid
     // get student daily schedule
+
+    // console.log('thisSearch.thisStudent.id',thisSearch.thisStudent.id)
+    // console.log('isNumeric.test(thisSearch.thisStudent.id)',isNumericOnly.test(thisSearch.thisStudent.id))
+
+    // console.log(1/n)
+
+    if(!isNumericOnly.test(thisSearch.thisStudent.id)){res.json({status:'Not Ok',message:`Incorrect Student Id Type, ${thisSearch.thisStudent.id} is not valid`});return}
 
     getStudentByDBiD(thisSearch.thisStudent.id).then((rsp)=>{
         if(rsp.length!==1){
@@ -173,6 +183,8 @@ export const getStudyHallsForThisStudentOnThisDate=(req,res,thisSearch)=>{
 export const addNewPass=(req,res,passData)=>{
     const nameArray = passData.name.split('-')
 
+    console.log('passData',passData)
+
     if(nameArray.length===2){
         const thisStudRecId=nameArray[1].trim()
             getClassByStudentDBiDClint(thisStudRecId,passData.atClintRecId).then((rsp)=>{
@@ -196,26 +208,30 @@ export const addNewPass=(req,res,passData)=>{
                         console.log('insertRsp',insertRsp)
                         const thisInsertId=(insertRsp.length===1?insertRsp[0].id:'Unknown')
 
+                        insertRsp[0].requestorSignedDisplay = format(insertRsp[0].requestor_signed,'MM/dd/yyyy hh:mm a')
+
                         console.log('thisInsertId',thisInsertId)
                         getPassTicketViewInfoById(thisInsertId).then((vThisPass)=>{
                             console.log('vThisPass',vThisPass)
 
                             if(vThisPass.length===1){
-                                const thisMessage= newPassEmailTemplate(thisInsertId,passData.reportTo,passData.onDate,passData.atPeriod
-                                    ,passData.duration,req.user.email)
-                                console.log('thisMessage',thisMessage)
-
                                 const thisInfo = vThisPass[0]
                                 const atTimeDisplay = (thisInfo.at_time?format(parse(thisInfo.at_time,'HH:mm:ss',new Date()),"hh:mm a"):'')
                                 const whenDisplay = (thisInfo.duration==='A'?'All Period':` from ${atTimeDisplay}`)
-                                const atDateDisplay = formatInTimeZone(thisInfo.at_date,'Pacific/Honolulu','MM/dd/yyyy')
+                                const atDateDisplay = format(thisInfo.at_date,'MM/dd/yyyy')
                                 
 
                                 thisInfo.whenDisplay=whenDisplay
                                 thisInfo.atDateDisplay=atDateDisplay
                                 thisInfo.atTimeDisplay=atTimeDisplay
+                                thisInfo.extraNotes = ('extraNotes' in passData?passData.extraNotes:'')
                                 
                                 alertRoomAboutPassAll('new',thisInfo)
+
+                                const thisMessage= newPassEmailTemplate(thisInsertId,passData.reportTo,atDateDisplay,passData.atPeriod
+                                    ,(passData.duration==='A'?passData.duration:atTimeDisplay),req.user.email,passData.extraNotes)
+                                console.log('thisMessage',thisMessage)
+
 
                                 const thisEmailObj = {to:req.user.email,from:req.user.email,subject:`Study Hall Pass #${thisInsertId}`,html:thisMessage}
                                 sendEmail(thisEmailObj)
@@ -534,6 +550,7 @@ const passListDisplayFormat=(currentUserEmail,thisDataSet)=>{
     // return r
 
     const displayPassList = thisDataSet.map((r)=>{
+        console.log(r)
         r.displayDate = format(r.at_date,"MM/dd/yyyy")
         console.log('r.duration',r.duration)
 
@@ -557,6 +574,7 @@ const passListDisplayFormat=(currentUserEmail,thisDataSet)=>{
 
 export const getOpenPasses=(req,res,subtitle,isOnlyToday,isOnlyMyPasses,whereObjArray)=>{
     getOpenPassTickets(isOnlyToday,whereObjArray).orderBy('at_date','period').then((thesePasses)=>{
+        console.log('thesePasses',thesePasses)
         res.render('passTicketList',{title:'Passes',subtitle:subtitle,isOnlyToday,isOnlyMyPasses,displayPasses:passListDisplayFormat(req.user.email,thesePasses)})
     })
     .catch((err)=>{

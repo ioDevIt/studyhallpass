@@ -184,6 +184,11 @@
                         <span class="input-group-text">Reason</span>
                         <textarea id="reasonTxtArea" class="form-control text-danger" maxlength="100" aria-label="With textarea" ></textarea>
                     </div>
+
+                    <div class="input-group">
+                        <span class="input-group-text">Extra Notes(Email Only)</span>
+                        <textarea id="extraNotesTxtArea" class="form-control text-danger" maxlength="100" aria-label="With textarea" placeholder="These Notes will not be saved, notes will only be sent with email"></textarea>
+                    </div>
     </div>
 
 
@@ -257,6 +262,8 @@
         const destinationTxt = document.getElementById('destinationTxt')
         const reasonTxtArea = document.getElementById('reasonTxtArea')
 
+        const extraNotesTxtArea = document.getElementById('extraNotesTxtArea')
+
 
         const requestorSignDiv = document.getElementById('requestorSignDiv')
         const requestorSignSpan = document.getElementById('requestorSignSpan')
@@ -283,14 +290,17 @@
             ,duration:(fromAll.checked?'A':fromTime.value)
             ,reportTo:destinationTxt.value
             ,reason:reasonTxtArea.value
+            ,extraNotes:extraNotesTxtArea.value
             // ,requestor:requestorSignSpan.textContent
             // ,requestSigned:requestorSignDateSpan.textContent
           }
 
+        //   const extraNotes = extraNotesTxtArea.value
           const postid="?"
           const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
 
           console.log('packageData',packageData)
+        //   console.log('extraNotes',extraNotes)
 
           axios.post('/newPass',{
             packageData,
@@ -303,7 +313,7 @@
 
             if(('insertRsp' in rspData) && (rspData.insertRsp.length===1)){
                 requestorSignSpan.textContent=rspData.insertRsp[0].requestor
-                requestorSignDateSpan.textContent=rspData.insertRsp[0].requestor_signed
+                requestorSignDateSpan.textContent= rspData.insertRsp[0].requestorSignedDisplay //  rspData.insertRsp[0].requestor_signed
                 requestorRequestorSignDiv.classList.remove('d-none')
                 requestorRequestorSignDiv.classList.add('success-flash')
                 disableElements()
@@ -464,9 +474,15 @@
                     console.log('rsp',rsp)
                     console.log('rspData',rspData)
 
-                    setTable(periodTableBody,rspData)
-                    showTable()
-                    allFieldsOk()
+                    if(rspData.status==='Not Ok'){
+                        showAlertModal('Finding Period Issue',rspData.message)
+                    }else{
+                        setTable(periodTableBody,rspData)
+                        showTable()
+                        allFieldsOk()
+                    }
+
+
                 })
                 .catch((e)=>{console.log(e);hideThinking()})
                 .finally(()=>{

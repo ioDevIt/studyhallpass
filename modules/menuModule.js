@@ -17,7 +17,7 @@ const getTermVal = (thisTerm)=>{
 }
 
 export const setMenu = async (req,res)=>{
-    const thisUserId =  122737 // 105111  // 128829  // req.user.id
+    const thisUserId =  (req.user.email==='syamashiro@iolani.org'?122737:req.user.id)  // 105111  // 128829  // req.user.id
     const thisSchoolYr = getCurrentSchoolYearForVera()
     const permissionForTheseClasses = await getClassPermissionsByPersonIdSchoolYear(thisUserId,thisSchoolYr)
     const shClassesByViewAttendance = permissionForTheseClasses.filter((r)=>(r.view_attendance && (r.class.description.substring(0,2)==='SH')))
@@ -50,5 +50,5 @@ export const setMenu = async (req,res)=>{
 
     req.user.gates.clint=shClassesClint
 
-    res.render('menu',{title:'',subtitle:'',menus:menuItems})    
+    res.render('menu',{title:'Study Hall',subtitle:'Menu',menus:menuItems})    
 }

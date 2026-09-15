@@ -20,12 +20,20 @@
         }
 
         .seatAllDiv{
-            font-size: 12;
+            font-size: 12px;
             border: 1px black solid;
             border-radius: 5%;
             
             padding: 5px;
             background-color: aliceblue;
+        }
+
+        /* .sname {
+            padding-bottom: 3px;
+        } */
+
+        .hr1 {
+            margin-block: 3px;
         }
 
         .seatNoXYDiv{
@@ -34,6 +42,11 @@
 
         .seatXYDiv {
             position:absolute;
+        }
+
+        .inOutStatus{
+            padding-bottom: 2px;
+            padding-top: 2px;
         }
 
         .in{
@@ -167,8 +180,10 @@
 
         seatDiv.selectAll('.sname').data((d)=>{return [d]}).join('div')
             .attr('class','sname').text((d)=>{return `${d.fname} ${d.lname}`})
-            .append('hr')
+            // .append('hr')
             // .style('opacity',1)
+
+        seatDiv.selectAll('.hr1').data((d)=>[d]).join('hr').attr('class','hr1')
 
         const seatStatusDivs = seatDiv.selectAll('.status').data((d,i)=>{return [d]}).join('div')
             .attr('class','status')
@@ -572,7 +587,7 @@
             } else if(msg.action === 'update'){
                 const updateBtn = document.getElementById(`passBtn_${msg.value.pt_id}`)
                 if(updateBtn){
-                    updateBtn.textContent = `${msg.value.fname} ${msg.value.lname} ${msg.value.whenDisplay.trim()}`
+                    updateBtn.textContent = `${msg.value.pname} ${msg.value.lname} ${msg.value.whenDisplay.trim()}`
                 }
                 else{
                     addNewPassBtn(msg)
