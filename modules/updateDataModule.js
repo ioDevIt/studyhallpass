@@ -1,8 +1,9 @@
-import {getClasses,getClassEnrollments,getStudents} from "../models/studyHallModel.js"
+import {getClasses,getClassEnrollments,getStudents,getUniqueStudentPIDSID} from "../models/studyHallModel.js"
 import {compareLists,createUIDNooks,uidNooks} from './Mules/UpdateFileData/compareToolsModule.js'
 import {getAllUSClassesBySchoolYear,getAllCurrentSchoolYearUSClassSchedulesByFacId,getEnrolledStudentsByClassIntId
-    ,getStudentsAPIInfoByID,getUSStudentsByAdvisors} from './Mules/VAPIReader.js'
+    ,getStudentsAPIInfoByID,getUSStudentsByAdvisors,getEnrolledStudentsByClassIntId_Map,getAllClassesByClint} from './Mules/VAPIReader.js'
 
+const usAdvisors=[123980,123569,104293,123756,130911,130451,104324,123839,128820,126749,123157,114177,123441,122617]
 
 export const updateClasses = async (req,res)=>{
     const currentStudyHallClasses =[]
@@ -64,6 +65,107 @@ export const updateClasses = async (req,res)=>{
     return {studyHallClasses,dbClasses}
 }
 
+export const updateFacStudentsEnrollments = async () =>{
+    // const currentStudyHallClasses =[]
+    const classesUS = await getAllUSClassesBySchoolYear(2026)
+    const classesUSSH = classesUS.filter((r)=>(r.class_id.substring(0,2)==='SH')).map((r)=>r.id)
+    const classIdsString = classesUSSH.join(';')
+    const theseUniqueStudentsSet = new Set()
+    const enrollmentsData ={}    
+
+    const enrolledStudents = await getEnrolledStudentsByClassIntId_Map(classIdsString)
+    const classIdsWithEnrollments = new Set()
+
+    enrolledStudents.forEach((r)=>{
+        classIdsWithEnrollments.add(r.clint)
+    })
+ 
+    const classesInfo = await getAllClassesByClint([...classIdsWithEnrollments].join(';'))
+    const classInfoDictionary ={}
+
+    classesInfo.forEach((r)=>{
+        if(!(r.id in classInfoDictionary)){classInfoDictionary[r.id]={clint:r.id,classId:r.class_id,description:r.description}}
+    })
+    console.log(classInfoDictionary)
+
+    enrolledStudents.forEach((r)=>{
+        theseUniqueStudentsSet.add(r.pid)
+    })
+
+    const theseUniqueStudents =[...theseUniqueStudentsSet]
+
+    const usStudents = await getUSStudentsByAdvisors(usAdvisors)
+    const enrolledStudentDictionary ={}
+
+    // make currentStudentID Dictionary from DB
+    // add to enrolledStudentDictionary
+
+    // that way only looking up students new to study hall only.  Only the first time it will be long
+
+    const currentPIDSID = await getUniqueStudentPIDSID()
+    const currentPIDSIDDictionary = {}
+
+    currentPIDSID.forEach((r)=>{
+        currentPIDSIDDictionary[r.pid]=r
+    })
+
+    const unFoundSID=[]
+
+    usStudents.forEach((r)=>{
+        if(theseUniqueStudents.includes(r.id)){
+            let thisSID ='???'
+            if(r.id in currentPIDSIDDictionary){
+                thisSID=currentPIDSIDDictionary[r.id].sid
+            }
+            else{
+                unFoundSID.push(r.id)
+            }
+
+            enrolledStudentDictionary[r.id]={
+                pid:r.id,sid:thisSID,email:r.email_1,fname:r.first_name,lname:r.last_name,pname:r.preferred_name,grade:r.grade_level
+            }
+        }
+    })
+
+    const newStudentDictionary ={}
+    // const startDT = new Date()
+
+    for(let i=0;i<unFoundSID.length;i++){
+        const thisStudentInfo = await getStudentsAPIInfoByID(unFoundSID[i])
+        if(unFoundSID[i] in enrolledStudentDictionary){
+            console.log(thisStudentInfo)
+            enrolledStudentDictionary[unFoundSID[i]].sid = (thisStudentInfo.length===1?thisStudentInfo[0].sid:'???')
+        }
+    }
+
+    const studentInfoReference=[]
+
+    for(const [key,value] of Object.entries(enrolledStudentDictionary)){
+        studentInfoReference.push(value)
+    }
+
+    enrolledStudents.forEach((r)=>{
+        if(!(r.clint in enrollmentsData)){enrollmentsData[r.clint]={clint:r.clint,enrollments:[]}}
+
+        enrollmentsData[r.clint].enrollments.push({pid:r.pid,classid:classInfoDictionary[r.clint].classId ,sid:enrolledStudentDictionary[r.pid].sid})
+    })
+
+        // const enrollmentsObj= {studentInfoReference:testData,classEnrollmentDictionary:testEnrollmentsData}
+        const enrollmentsObj= {studentInfoReference,classEnrollmentDictionary:enrollmentsData}  // await getEnrollments(true)
+    
+        const updateFacStudentsReturns = await updateFacStudents(enrollmentsObj.studentInfoReference)
+    
+        let enrollmentsArray =[]
+    
+        for(const[key,value] of Object.entries(enrollmentsObj.classEnrollmentDictionary)){ // same ast enroolementsObj to test
+            enrollmentsArray=enrollmentsArray.concat(value.enrollments)
+        }
+    
+        const updateEnrollmentReturns = await updateEnrollments(enrollmentsArray)
+
+        return updateEnrollmentReturns
+}
+
 export const getEnrollments = async (useDB)=>{
     let theseClasses
     if(useDB){
@@ -75,7 +177,7 @@ export const getEnrollments = async (useDB)=>{
         console.log(1/n) // need to map API Classes to db Classes
     }
 
-    const usAdvisors=[123980,123569,104293,123756,130911,130451,104324,123839,128820,126749,123157,114177,123441,122617]
+  
     const theseClassClints = theseClasses.map((r)=>r.clint)
     const classEnrollments = await getEnrolledStudentsByClassIntId(theseClassClints)
 

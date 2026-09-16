@@ -179,7 +179,7 @@
                             .style('left',(d,i)=>{return `${d.position.x}px`})
 
         seatDiv.selectAll('.sname').data((d)=>{return [d]}).join('div')
-            .attr('class','sname').text((d)=>{return `${d.fname} ${d.lname}`})
+            .attr('class','sname').text((d)=>{return `${d.pname} ${d.lname}`})
             // .append('hr')
             // .style('opacity',1)
 

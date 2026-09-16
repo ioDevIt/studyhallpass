@@ -17,6 +17,8 @@ import path from "path"
 import uidSafe from "uid-safe"
 import favicon from "serve-favicon"
 
+import {ClassEnrollmentClearOutsCron,syncClassesCron,syncFacStudentsEnrollmentsCron} from "./modules/Mules/Crons/cronsModule.js"
+
 import logger from './modules/Mules/logger.js'
 import {trace} from "./modules/Mules/logsModule.js"
 
@@ -209,6 +211,10 @@ app.use((req,res)=>{
   console.log('No matching route')
   res.render('welcome',{message:"No Access"})
 })
+
+ClassEnrollmentClearOutsCron()
+syncClassesCron()
+syncFacStudentsEnrollmentsCron()
 
 /****** sockets ********/
 setSocketHandler(io)

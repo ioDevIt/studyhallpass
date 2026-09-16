@@ -87,14 +87,15 @@
                         <th class="fw6 tl pa3 bg-white">Pass #</th>
                         <th class="fw6 tl pa3 bg-white"></th>
                         <th class="fw6 tl pa3 bg-white"></th>
+                        <th class="fw6 tl pa3 bg-white"></th>
                         </tr>
                     </thead>
                     <tbody id="mainTBody">
                         <% displayPasses.forEach((r)=>{ %>
                         <% if(isOnlyMyPasses){ %>
-                            <tr id=<%= `row_${r.pt_id}` %> class="stripe-dark" onclick=completePass(<%= r.pt_id %>)>
+                            <tr id=<%= `row_${r.pt_id}` %> class="stripe-dark" >
                          <% } else { %>
-                            <tr id=<%= `row_${r.pt_id}` %> class="stripe-dark" onclick=viewPass(<%= r.pt_id %>)>
+                            <tr id=<%= `row_${r.pt_id}` %> class="stripe-dark" >
                          <% } %>
                         
                             <td id=<%= `row_displayDate_${r.pt_id}` %> class="tl pa3"><%= r.displayDate %></td>
@@ -102,13 +103,19 @@
                             <td id=<%= `row_displayName_${r.pt_id}` %> class="tl pa3"><%= `${r.pname} ${r.lname}` %></td>            
                             <td id=<%= `row_reportTo_${r.pt_id}` %> class="tl pa3"><%= r.report_to %></td>
                             <td id=<%= `row_reason_${r.pt_id}` %> class="tl pa3"><%= r.reason %></td>
-                            <td id=<%= `row_duration_${r.pt_id}` %> class="tl pa3"><%= (r.duration==='A'?r.duration:r.displayDuration) %></td>
+                            <td id=<%= `row_duration_${r.pt_id}` %> class="tl pa3"><%= (r.duration==='A'?r.displayDuration:r.displayDuration) %></td>
                             <td id=<%= `row_status_${r.pt_id}` %> class="tl pa3"><%= r.pt_status %></td>
                             <td id=<%= `row_requestor_${r.pt_id}` %> class="tl pa3"><a href="mailto:<%= r.requestor %>"><%= r.requestor %></a></td>
                             <td id=<%= `row_ptid_${r.pt_id}` %> class="tl pa3"><%= r.pt_id %></td>
-                            <td id=<%= `row_editsvg_${r.pt_id}` %> class="tl pa3">
+                            <td id=<%= `row_viewsvg_${r.pt_id}` %> class="tl pa3" onclick="(e)=>{event.preventDefault(); event.stopPropagation(); console.log('Clicked')}" >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16"  onclick=viewPass(event,<%= r.pt_id %>)>
+                                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                                    <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
+                                </svg>
+                            </td>
+                            <td id=<%= `row_editsvg_${r.pt_id}` %> class="tl pa3" onclick="(e)=>{event.preventDefault(); event.stopPropagation(); console.log('Clicked')}" >
                                 <% if(r.allowEdit){ %>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16" onclick=editPass(<%= r.pt_id %>)>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16" onclick=editPass(event,<%= r.pt_id %>)>
                                     <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
                                     <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
                                 </svg>
@@ -116,7 +123,7 @@
                             </td>
                             <td id=<%= `row_deletesvg_${r.pt_id}` %> class="tl pa3">
                                 <% if(r.allowDelete){ %>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16" onclick="event.preventDefault(); event.stopPropagation(); deletePass(<%= r.pt_id %>)"> 
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16" onclick="deletePass(event,<%= r.pt_id %>)"> 
   <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
   <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
 </svg>
@@ -135,7 +142,9 @@
 
 
     <script>
-        const viewPass=(thisPassId)=>{
+        const viewPass=(e,thisPassId)=>{
+            e.preventDefault();
+            e.stopPropagation();
             window.open(`/viewPass/${thisPassId}`, '_blank')
         }
 
@@ -143,11 +152,15 @@
             window.open(`/completePass/${thisPassId}`, '_blank')
         }
 
-        const editPass=(thisPassId)=>{
+        const editPass=(e,thisPassId)=>{
+            e.preventDefault();
+            e.stopPropagation();
             window.open(`/editPass/${thisPassId}`, '_blank')
         }
 
-        const deletePass=(thisPassId)=>{
+        const deletePass=(e,thisPassId)=>{
+            e.preventDefault();
+            e.stopPropagation();
             showThinking('eating',4)
             const postid="?"
                 const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
@@ -239,6 +252,44 @@
 
 
     <script>
+        const createViewIconCell = (passId) => {
+            const thisTD = document.createElement('td')
+            thisTD.id=`row_editsvg_${passId}` 
+            thisTD.classList.add('tl','pa3')
+
+            const svgNS = 'http://www.w3.org/2000/svg';
+
+            const svg = document.createElementNS(svgNS, 'svg');
+            svg.setAttribute('xmlns', svgNS);
+            svg.setAttribute('width', '16');
+            svg.setAttribute('height', '16');
+            svg.setAttribute('fill', 'currentColor');
+            svg.setAttribute('class', 'bi bi-pencil-square');
+            svg.setAttribute('viewBox', '0 0 16 16');
+
+            svg.addEventListener('click', (e) => {
+                viewPass(e,passId);
+            });
+
+            const path1 = document.createElementNS(svgNS, 'path');
+            path1.setAttribute(
+                'd',
+                'M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5'
+            );
+
+            const path2 = document.createElementNS(svgNS, 'path');
+            path2.setAttribute('fill-rule', 'evenodd');
+            path2.setAttribute(
+                'd',
+                'M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z'
+            );
+
+            svg.append(path1, path2);
+
+            thisTD.append(svg)
+            return thisTD;
+        }
+
         const createEditIconCell = (passId) => {
             const thisTD = document.createElement('td')
             thisTD.id=`row_editsvg_${passId}` 
@@ -254,8 +305,8 @@
             svg.setAttribute('class', 'bi bi-pencil-square');
             svg.setAttribute('viewBox', '0 0 16 16');
 
-            svg.addEventListener('click', () => {
-                editPass(passId);
+            svg.addEventListener('click', (e) => {
+                editPass(e,passId);
             });
 
             const path1 = document.createElementNS(svgNS, 'path');
@@ -293,11 +344,8 @@
             svg.setAttribute('class', 'bi bi-trash');
             svg.setAttribute('viewBox', '0 0 16 16');
 
-            svg.addEventListener('click', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-
-                deletePass(passId);
+            svg.addEventListener('click', (e) => {
+                deletePass(e,passId);
             });
 
             const path1 = document.createElementNS(svgNS, 'path');
@@ -364,7 +412,7 @@
             <% if(isOnlyMyPasses){ %>
                 newTR.addEventListener('click',completePass(msg.value.pt_id))
             <% } else { %>
-                newTR.addEventListener('click',viewPass(msg.value.pt_id))
+                newTR.addEventListener('click',viewPass(event,msg.value.pt_id))
             <% } %>
 
             newTR.append(makeTDCell(`row_displayDate_${msg.value.pt_id}`,msg.value.atDateDisplay))
@@ -376,6 +424,7 @@
             newTR.append(makeTDCell(`row_status_${msg.value.pt_id}`,msg.value.pt_status))
             newTR.append(makeEmailCell(`row_requestor_${msg.value.pt_id}`,msg.value.requestor,msg.value.requestor))
             newTR.append(makeTDCell(`row_ptid_${msg.value.pt_id}`,msg.value.pt_id))
+            newTR.append(createViewIconCell(msg.value.pt_id))
             newTR.append(createEditIconCell(msg.value.pt_id))
             newTR.append(createDeleteIconCell(msg.value.pt_id))
 

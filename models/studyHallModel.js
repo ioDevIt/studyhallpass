@@ -95,3 +95,11 @@ export const updateEnrollmentStatus = (enrollmentStatusInfo)=>{
     const thisOutDate= (enrollmentStatusInfo.toStatus=='In'?null:new Date())
     return knexPG('class_enrollment').update({status:enrollmentStatusInfo.toStatus,outreason:enrollmentStatusInfo.outTypeText,out_time:thisOutDate}).where({is_active:true,classid:enrollmentStatusInfo.classId,sid:enrollmentStatusInfo.scanid}).returning(['id','sid','status','outreason','out_time'])    
 }
+
+export const getUniqueStudentPIDSID = () =>{
+        return knexPG('facstudents').distinct('pid','sid')
+}
+
+export const clearOuts = () =>{
+    return knexPG('class_enrollment').update({status:'In'}).where({is_active:true,status:'Out'}).returning('id')
+}

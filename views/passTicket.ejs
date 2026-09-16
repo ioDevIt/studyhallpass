@@ -481,8 +481,6 @@
                         showTable()
                         allFieldsOk()
                     }
-
-
                 })
                 .catch((e)=>{console.log(e);hideThinking()})
                 .finally(()=>{
@@ -544,6 +542,8 @@
                     const thisCellData = document.createElement('td')
                     thisCellData.textContent=value
 
+                    console.log('key',key)
+
                     thisRw.append(thisCellData)
                 }
 
@@ -583,12 +583,17 @@
 
         const validateTimeSelected=(e)=>{
             const time = event.target.value;
+            const timeCompare = (time.replace(':','')*1)
+            const targetMin = (event.target.min.replace('AM','').replace('PM','').replace(':','').replaceAll(' ','')*1)+(event.target.min.includes('PM')?1200:0)
+            const targetMax = (event.target.max.replace('AM','').replace('PM','').replace(':','').replaceAll(' ','')*1)+(event.target.max.includes('PM')?1200:0)
 
-            console.log(time)
-            console.log(event.target.min)
-            console.log(event.target.max)
+            console.log(timeCompare)
+            console.log(targetMin)
+            console.log(targetMax)
+            console.log('timeCompare <= targetMin ',timeCompare <= targetMin )
+            console.log('timeCompare < targetMax ',timeCompare < targetMax )
 
-            if (time && (time < event.target.min || time > event.target.max)) {
+            if (timeCompare && (timeCompare < targetMin || timeCompare > targetMax)) {
                 console.log('Outside Valid Range')
                 event.target.setCustomValidity("Please select correct time between min and max");
 

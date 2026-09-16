@@ -9,7 +9,7 @@
 <body>
 
     <div class="cf">
-    <div class="fl w-5 w-10-ns tc pv5 bg-black-05"></div>
+    <div class="fl w-5 w-10-ns tc pv5"></div>
     <div class="fl w-100 w-80-ns tc pv5">
         <header class="bg-white black-80 tc pv4 avenir">
             <h1 class="mt2 mb0 baskerville i fw1 f1"><%= title %></h1>
@@ -19,10 +19,11 @@
                     <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" href="<%= r.url %>"><%= r.name %></a>
                 <% }) %> -->
                     <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" onclick="goURL('/createPass')">Create Pass</a>
-                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" onclick="goURL('/listmystudentspasses')">View Todays Passes For My Students</a>
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" onclick="goURL('/listmystudentspassestoday')">Todays Passes For My Students</a>
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" onclick="goURL('/listmystudentspasses')">Passes For My Students</a>
                     <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" onclick="goURL('/listmypasses')">View My Passes</a>
                     <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" onclick="goURL('/listtodays')">View Todays Passes</a>
-                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" onclick="goURL('/listall')">View All Open Passes</a>
+                    <a class="f6 f5-l link bg-animate black-80 hover-bg-lightest-blue dib pa3 ph4-l" onclick="goURL('/listallopen')">View All Open Passes</a>
                     <a class="f6 f5-l link bg-animate black-80 hover-bg-light-yellow dib pa3 ph4-l" href="/logout">Logout</a>
             </nav>
         </header>
@@ -41,7 +42,7 @@
         </div>
 
     </div>
-    <div class="fl w-5 w-10-ns tc pv5 bg-black-05"></div>
+    <div class="fl w-5 w-10-ns tc pv5"></div>
     </div>
 
     <script>

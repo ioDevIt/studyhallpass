@@ -11,7 +11,7 @@ import {sendSocketMessage} from './Mules/socketHandler.js'
 import {getTodaysAttendance} from './Mules/VAPIReader.js'
 
 const isStudentSelectionFormatOk = /\[\d{1,2}\] - \d{1,3}$/
-const isNumericOnly =/^[\d{1,3}]$/
+const isNumericOnly =/[\d{1,3}]$/
 
 
 export const alertRoomAboutPassForToday =(thisAction,thisPassInfo)=>{
@@ -157,16 +157,16 @@ export const getStudyHallsForThisStudentOnThisDate=(req,res,thisSearch)=>{
             const theseSH = thisDailyScheduleRSP
                             .filter((r)=>(r.item_description.includes('Study Hall') || r.item_description.includes('Academic Resource Period')))
                             .map((r)=>{
+
                                     return {
                                         period:r.period.replace('Period','').replace('(US)','').trim()
-                                        ,start:r.start_time
-                                        ,end:r.end_time
+                                        ,start:formatInTimeZone(parse(r.start_time,'HH:mm:ss',new Date()),'Pacific/Honolulu',"hh:mm a")
+                                        ,end:formatInTimeZone(parse(r.end_time,'HH:mm:ss',new Date()),'Pacific/Honolulu',"hh:mm a")
                                         ,className:r.item_description
                                         ,fac:r.teacher
                                         ,clint:r.record_id
                                         }
                                 })
-
 
             res.json(theseSH)
         })
@@ -229,7 +229,7 @@ export const addNewPass=(req,res,passData)=>{
                                 alertRoomAboutPassAll('new',thisInfo)
 
                                 const thisMessage= newPassEmailTemplate(thisInsertId,passData.reportTo,atDateDisplay,passData.atPeriod
-                                    ,(passData.duration==='A'?passData.duration:atTimeDisplay),req.user.email,passData.extraNotes)
+                                    ,(passData.duration==='A'?passData.duration:atTimeDisplay),req.user.email,passData.reason,passData.extraNotes)
                                 console.log('thisMessage',thisMessage)
 
 
@@ -555,7 +555,7 @@ const passListDisplayFormat=(currentUserEmail,thisDataSet)=>{
         console.log('r.duration',r.duration)
 
         if(r.duration==='A'){
-            r.displayDuration = r.duration
+            r.displayDuration = 'All' // r.duration
         }
         else{
             const durationDate = parse(r.at_time,"HH:mm:ss",new Date())

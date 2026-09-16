@@ -12,7 +12,7 @@
 import {insertLog,insertLogAsync,trace,traceObj} from '../modules/Mules/logsModule.js'
 import {encrypt,decrypt,decryptData} from '../modules/Mules/cryptdecrypt.js'
 
-import {updateClasses,getEnrollments,updateFacStudents,updateEnrollments} from '../modules/updateDataModule.js'
+import {updateClasses,getEnrollments,updateFacStudentsEnrollments, updateFacStudents,updateEnrollments} from '../modules/updateDataModule.js'
 
 import {testData,testEnrollmentsData} from '../modules/updateDataTest.js'
 
@@ -53,8 +53,11 @@ router.post('/updateClasses', async (req,res)=>{
 })
 
 router.post('/updateEnrollments', async (req,res)=>{
-    const enrollmentsObj= {studentInfoReference:testData,classEnrollmentDictionary:testEnrollmentsData}  // await getEnrollments(true)
+    const updateFacStudentsEnrollmentsRsp = await updateFacStudentsEnrollments()
+    res.json(updateFacStudentsEnrollmentsRsp)
+    return
 
+    const enrollmentsObj= {studentInfoReference:testData,classEnrollmentDictionary:testEnrollmentsData}  // await getEnrollments(true)
     const updateFacStudentsReturns = await updateFacStudents(enrollmentsObj.studentInfoReference)
 
     let enrollmentsArray =[]
@@ -78,6 +81,14 @@ router.get('/updateClasses', async (req,res)=>{
 })
 
 router.get('/updateEnrollments', async (req,res)=>{
+    // res.json(testEnrollmentsData)
+    // return
+
+    const updateFacStudentsEnrollmentsRsp = await updateFacStudentsEnrollments()
+    res.json(updateFacStudentsEnrollmentsRsp)
+    return
+
+
     const enrollmentsObj= {studentInfoReference:testData,classEnrollmentDictionary:testEnrollmentsData}  // await getEnrollments(true)
 
     const updateFacStudentsReturns = await updateFacStudents(enrollmentsObj.studentInfoReference)

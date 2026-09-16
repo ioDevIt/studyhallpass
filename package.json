@@ -17,6 +17,7 @@
     "chalk": "^5.6.2",
     "connect-redis": "^9.0.0",
     "cookie-parser": "^1.4.7",
+    "cron": "^4.4.0",
     "csvtojson": "^2.0.14",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
