@@ -119,11 +119,6 @@ import updateDataRoutes from "./routes/updateDataRoutes.js"
 
 // const dotEnv = dotEnvMod()
 
-app.get('/test',(req,res)=>{
-  req.log.info("Homepage requested");
-  res.send('in test')
-})
-
 
 // Any Routes for non users, or no login needed
 app.use('/',nuRoutes)

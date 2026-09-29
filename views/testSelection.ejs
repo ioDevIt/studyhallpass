@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autocomplete</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+  <!-- <link rel="stylesheet" href="/css/autoDropdown.css"> -->
+
+  <style>
+ .inputContainer {
+  position: relative;
+  width: 300px;
+}
+
+.name-list {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  width: 100%;
+  max-height: 200px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  background-color: #fff;
+  border: 1px solid #ced4da;
+  border-top: 0;
+}
+
+.name-list.show {
+  display: block;
+}
+
+.name-list li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.name-list li:hover,
+.name-list li.active {
+  color: #fff;
+  background-color: #0d6efd;
+}
+
+  </style>
+</head>
+
+<body>
+
+  <div class="inputContainer">
+  <input
+    type="text"
+    class="form-control eventGrp shareValue"
+    id="nameTxt"
+    data-selvalue=""
+    autocomplete="off"
+  />
+
+  <ul id="nameList" class="name-list">
+    <li data-value="two">Two</li>
+    <li data-value="three">Three</li>
+  </ul>
+</div>
+
+  <script>
+const nameTxt = document.getElementById("nameTxt");
+const nameList = document.getElementById("nameList");
+
+let activeIndex = -1;
+
+function getVisibleItems() {
+  return [...nameList.querySelectorAll("li")].filter(
+    (item) => item.style.display !== "none"
+  );
+}
+
+function selectItem(item) {
+  nameTxt.value = item.textContent;
+  nameTxt.dataset.selvalue = item.dataset.value;
+
+  nameList.classList.remove("show");
+  activeIndex = -1;
+}
+
+function updateActiveItem(items) {
+  items.forEach((item) => item.classList.remove("active"));
+
+  const activeItem = items[activeIndex];
+
+  if (activeItem) {
+    activeItem.classList.add("active");
+
+    activeItem.scrollIntoView({
+      block: "nearest"
+    });
+  }
+}
+
+nameTxt.addEventListener("input", () => {
+  const searchValue = nameTxt.value.trim().toLowerCase();
+
+  activeIndex = -1;
+
+  const items = nameList.querySelectorAll("li");
+
+  items.forEach((item) => {
+    const matches = item.textContent
+      .toLowerCase()
+      .includes(searchValue);
+
+    item.style.display = matches ? "block" : "none";
+    item.classList.remove("active");
+  });
+
+  const visibleItems = getVisibleItems();
+
+    if (searchValue.length > 0 && visibleItems.length > 0) {
+      nameList.classList.add("show");
+    } else {
+      nameList.classList.remove("show");
+    }
+});
+
+nameTxt.addEventListener("keydown", (event) => {
+  const visibleItems = getVisibleItems();
+
+  if (visibleItems.length === 0) return;
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+
+    activeIndex++;
+
+    if (activeIndex >= visibleItems.length) {
+      activeIndex = 0;
+    }
+
+    updateActiveItem(visibleItems);
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+
+    activeIndex--;
+
+    if (activeIndex < 0) {
+      activeIndex = visibleItems.length - 1;
+    }
+
+    updateActiveItem(visibleItems);
+  }
+
+  if (event.key === "Enter") {
+    event.preventDefault();
+
+    if (activeIndex >= 0) {
+      selectItem(visibleItems[activeIndex]);
+    }
+  }
+
+  if (event.key === "Escape") {
+    nameList.classList.remove("show");
+    activeIndex = -1;
+  }
+});
+
+// Mouse selection
+nameList.addEventListener("mousedown", (event) => {
+  const selectedItem = event.target.closest("li");
+
+  if (!selectedItem) return;
+
+  event.preventDefault();
+  selectItem(selectedItem);
+});
+
+// Close when clicking outside
+document.addEventListener("mousedown", (event) => {
+  if (!event.target.closest(".inputContainer")) {
+    nameList.classList.remove("show");
+  }
+});
+
+const setNewValues=(theseValues)=>{
+  nameList.innerHTML=""
+
+  theseValues.forEach((r)=>{
+    const thisLI= document.createElement('li')
+    thisLI.dataset.value=r.id
+    thisLI.textContent=`${r.lname}, ${r.fname} [${r.grade}] Test`
+    thisLI.addEventListener('click',()=>{
+      nameTxt.value=thisLI.textContent
+      nameTxt.dataset.selvalue=thisLI.dataset.value
+      nameList.classList.remove("show");
+    })
+
+    nameList.append(thisLI)
+  })
+}
+
+ nameTxt.addEventListener('keyup',(e)=>{
+
+      if(/^[a-zA-Z0-9]$/.test(event.key)){
+            let thiskeyCode = nameTxt.value;
+            const postid="?"
+            const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+
+            console.log('thiskeyCode',thiskeyCode)
+            axios.post('/getPassStudentList',{
+              search:thiskeyCode,
+              postid:postid
+            },rsConfig).then((rsp)=>{
+              console.log('rsp',rsp)
+              const rspData = rsp.data
+
+              console.log('rspData',rspData)
+              
+              setNewValues(rspData)
+            })
+            .catch((e)=>{console.log(e)})
+        }
+
+        })
+
+  nameTxt.addEventListener('change',(e)=>{
+            console.log('e',e.target.id)  // ,e.target.data.value
+
+            // hideClearPeriodTable()
+
+            // gradeSpan.textContent=thisCurrentStudent.grade
+            // toReportOnDate.value =''
+            // atPeriodSpan.textContent=periodTextDefault
+
+            // requestorSignDiv.hidden=!allFieldsOk()
+        })
+  </script>
+
+<!-- <script src="./js/autoDropdown.js"></script> -->
+
+</body>
+</html>

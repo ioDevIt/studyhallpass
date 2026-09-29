@@ -1,6 +1,8 @@
 import {getClassPermissionsByPersonIdSchoolYear} from './Mules/VAPIReader.js'
 import {getCurrentSchoolYearForVera} from './Mules/helpersModule.js'
-import {getClassesByClint} from '../models/studyHallModel.js'
+import {getClassesByClint,getAllClints} from '../models/studyHallModel.js'
+
+const showAllClassesUserEmails=['syamashiro@iolani.org','akaonohi@iolani.org','nhue@iolani.org']
 
 const getTermVal = (thisTerm)=>{
     switch(thisTerm){
@@ -17,11 +19,21 @@ const getTermVal = (thisTerm)=>{
 }
 
 export const setMenu = async (req,res)=>{
-    const thisUserId =  (req.user.email==='syamashiro@iolani.org'?122737:req.user.id)  // 105111  // 128829  // req.user.id
+    const thisUserId = (req.user.email==='syamashiro@iolani.org'?122737:req.user.id)  // 105111  // 128829  // req.user.id
     const thisSchoolYr = getCurrentSchoolYearForVera()
     const permissionForTheseClasses = await getClassPermissionsByPersonIdSchoolYear(thisUserId,thisSchoolYr)
     const shClassesByViewAttendance = permissionForTheseClasses.filter((r)=>(r.view_attendance && (r.class.description.substring(0,2)==='SH')))
-    const shClassesClint = shClassesByViewAttendance.map((r)=>r.class.id)
+    let shClassesClint = [] // shClassesByViewAttendance.map((r)=>r.class.id)
+
+    if(showAllClassesUserEmails.includes(req.user.email)){
+        const theseClints = await getAllClints()
+        // console.log('theseClints',theseClints)
+        shClassesClint = theseClints.map((r)=>r.clint)
+    }
+    else{
+        shClassesClint = shClassesByViewAttendance.map((r)=>r.class.id)
+    }
+
     const theseClassesDB = await getClassesByClint(shClassesClint)
     const menuItems = theseClassesDB.map((r)=>{
         return{
@@ -39,6 +51,8 @@ export const setMenu = async (req,res)=>{
         if(aTerm<bTerm){return -1}
         return 0
     })
+
+    // console.log('shClassesClint',shClassesClint)
 
     // res.json({permissionForTheseClasses,shClassesByViewAttendance,theseClassesDB})
     // return

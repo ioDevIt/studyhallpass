@@ -3,7 +3,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import {getClassPageInfoByClassId,getStudentForListSearch,getStudentByDBiD,getClassByStudentDBiDClint
     ,insertNewPassTicket,getPassTicketViewInfoById,closePassTicketById,getPassTicketById
     ,getOpenPassTickets,deletePassTicket,updateSeatChange,updateEnrollmentStatus} from  '../models/studyHallModel.js'
-import {getStudentDailySchedule} from './Mules/VAPIReader.js'
+import {getStudentDailySchedule,getStudentsAPIInfoByID} from './Mules/VAPIReader.js'
 import {compareLists,createUIDNooks,uidNooks} from './Mules/UpdateFileData/compareToolsModule.js'
 import {insertLogsBatch} from '../models/logsModel.js'
 import {sendEmail,newPassEmailTemplate,updatedPassEmailTemplate,sendEmailTest} from './Mules/mailModule.js'
@@ -104,7 +104,7 @@ export const setClassPage = (req,res,thisClassId)=>{
                 console.log('r.at_date',r.at_date)
 
                 const atDateDiplay = formatInTimeZone(r.at_date,'Pacific/Honolulu','yyyy-MM-dd')
-                const whenDisplay = (r.duration==='A'?'All Period':` from ${format(parse(r.at_time,'HH:mm:ss',new Date()),"hh:mm a")}`)
+                const whenDisplay = (r.duration==='A'?'All Period':` from ${(r.at_time!==null?format(parse(r.at_time,'HH:mm:ss',new Date()),"hh:mm a"):'??')}`)
                 const thisPass={pt_id: r.pt_id ,nameDisplay: `${r.pname} ${r.lname}`, whenDisplay,duration:r.duration,at_date:r.at_date,at_time:r.at_time,on_period:r.on_period,report_to:r.report_to
                     ,reason:r.reason,requestor:r.requestor,pt_status:r.pt_status,out_dt:r.out_dt,in_dt:r.in_dt,reciever:r.reciever
                     ,sid:r.sid,need_review:r.need_review,pt_bywho:r.pt_bywho
@@ -145,9 +145,9 @@ export const getStudyHallsForThisStudentOnThisDate=(req,res,thisSearch)=>{
 
     // console.log(1/n)
 
-    if(!isNumericOnly.test(thisSearch.thisStudent.id)){res.json({status:'Not Ok',message:`Incorrect Student Id Type, ${thisSearch.thisStudent.id} is not valid`});return}
+    if(!isNumericOnly.test(thisSearch.thisStudentId)){res.json({status:'Not Ok',message:`Incorrect Student Id Type, ${thisSearch.thisStudentId} is not valid`});return}
 
-    getStudentByDBiD(thisSearch.thisStudent.id).then((rsp)=>{
+    getStudentByDBiD(thisSearch.thisStudentId).then((rsp)=>{
         if(rsp.length!==1){
             res.json({status:'Not Ok',message:'dsakfiho38'})
             return
@@ -181,15 +181,16 @@ export const getStudyHallsForThisStudentOnThisDate=(req,res,thisSearch)=>{
 }
 
 export const addNewPass=(req,res,passData)=>{
-    const nameArray = passData.name.split('-')
+    // const nameArray = passData.name.split('-')
 
     console.log('passData',passData)
 
-    if(nameArray.length===2){
-        const thisStudRecId=nameArray[1].trim()
+        const thisStudRecId=passData.nid
             getClassByStudentDBiDClint(thisStudRecId,passData.atClintRecId).then((rsp)=>{
                 if(rsp.length===1){
                     const thisRec=rsp[0]
+                    const thisStudentPID = thisRec.pid
+
                     const toInsert={
                         classid:thisRec.classid
                         ,sid:thisRec.sid
@@ -211,7 +212,7 @@ export const addNewPass=(req,res,passData)=>{
                         insertRsp[0].requestorSignedDisplay = format(insertRsp[0].requestor_signed,'MM/dd/yyyy hh:mm a')
 
                         console.log('thisInsertId',thisInsertId)
-                        getPassTicketViewInfoById(thisInsertId).then((vThisPass)=>{
+                        getPassTicketViewInfoById(thisInsertId).then(async (vThisPass)=>{
                             console.log('vThisPass',vThisPass)
 
                             if(vThisPass.length===1){
@@ -232,8 +233,16 @@ export const addNewPass=(req,res,passData)=>{
                                     ,(passData.duration==='A'?passData.duration:atTimeDisplay),req.user.email,passData.reason,passData.extraNotes)
                                 console.log('thisMessage',thisMessage)
 
+                                const thisStudentInfo = await getStudentsAPIInfoByID(thisStudentPID)
+                                const thisStudentEmail = (thisStudentInfo.length===1?thisStudentInfo[0].email:'')
+                                const toEmail = (thisStudentEmail!==''?thisStudentEmail:req.user.email)
 
-                                const thisEmailObj = {to:req.user.email,from:req.user.email,subject:`Study Hall Pass #${thisInsertId}`,html:thisMessage}
+                                const toMessageAddToSubject = (thisStudentEmail===""?"Could't find student's email please forward":'')
+
+                                console.log('thisStudentInfo',thisStudentInfo)
+                                console.log('toEmail',toEmail)
+
+                                const thisEmailObj = {to:toEmail,from:req.user.email,subject:`Study Hall Pass #${thisInsertId} ${toMessageAddToSubject}`,html:thisMessage}
                                 sendEmail(thisEmailObj)
                                 // sendEmail({to:'syamashiro@iolani.org',subject:'Test 2',text:'Hello 2'}) 
                                 res.json({rsp,passData,toInsert,insertRsp})
@@ -254,12 +263,6 @@ export const addNewPass=(req,res,passData)=>{
                     res.json({status:'Not Ok',message:'rl4p04392qae94jae'})
                 }                
             })
-    }
-    else
-    {
-        res.json({status:'Not Ok',message:'kajefoa3aefa'})
-    }
-
 }
 
 
@@ -453,7 +456,7 @@ export const updatePass = async(req,res,passData)=>{
                         console.log('thisMessage',thisMessage)
                         console.log('passData',passData)
 
-                        getPassTicketViewInfoById(passData.passId).then((vThisPass)=>{
+                        getPassTicketViewInfoById(passData.passId).then(async (vThisPass)=>{
                             console.log('vThisPass',vThisPass)
                             if(vThisPass.length===1){
                                 const thisInfo = vThisPass[0]
@@ -474,7 +477,16 @@ export const updatePass = async(req,res,passData)=>{
                                 console.log('Will Alert ',thisInfo)
                                 alertRoomAboutPassAll('update',thisInfo)
 
-                                const thisEmailObj = {to:req.user.email,from:req.user.email,subject:`Study Hall Pass #${passData.passId} Updated`,html:thisMessage}
+                                const thisStudentInfo = await getStudentsAPIInfoByID(thisStudentPID)
+                                const thisStudentEmail = '' // (thisStudentInfo.length===1?thisStudentInfo[0].email:'')
+                                const toEmail = (thisStudentEmail!==''?thisStudentEmail:req.user.email)
+
+                                const toMessageAddToSubject = (thisStudentEmail===""?"Could not find student's email please forward to student":'')
+
+                                console.log('thisStudentInfo',thisStudentInfo)
+                                console.log('thisStudentEmail',thisStudentEmail)
+
+                                const thisEmailObj = {to:toEmail,from:req.user.email,subject:`Study Hall Pass #${passData.passId} Updated ${toMessageAddToSubject}`,html:thisMessage}
                                 sendEmail(thisEmailObj)                       
 
 
@@ -558,9 +570,13 @@ const passListDisplayFormat=(currentUserEmail,thisDataSet)=>{
             r.displayDuration = 'All' // r.duration
         }
         else{
+            if(r.at_time!==null){
             const durationDate = parse(r.at_time,"HH:mm:ss",new Date())
             console.log('durationDate',durationDate)
             r.displayDuration =format(durationDate,"h:mm a")
+            } else {
+            r.displayDuration=''    
+            }
         }
        
         r.allowEdit=(r.requestor===currentUserEmail && r.pt_status ==='New')

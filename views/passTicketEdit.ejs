@@ -449,11 +449,12 @@
                 const postid="?"
                 const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
 
-                console.log({         studentInfo:thisCurrentStudent,
-                    postid:postid})
+                console.log({studentInfo:thisCurrentStudent,postid:postid})
+
+
                 axios.post('/getSHPeriods',{
                     search:thisDate,
-                    studentInfo:thisCurrentStudent,
+                    studentInfo:thisCurrentStudent.id,
                     postid:postid
                 },rsConfig).then((rsp)=>{                   
                     const rspData = rsp.data

@@ -31,7 +31,8 @@ export const passStatic = (thisPassString) =>{
 export const passFirstFence=(thisUserInfo)=>{
         // console.log('thisUserInfo',thisUserInfo)
     // Uncomment the one to use
-        return (thisUserInfo.Roles.includes('Passer'))  //  || thisUserInfo.id ===129863
+        return (thisUserInfo.Roles.includes('Faculty'))  //  || thisUserInfo.id ===129863
+        // return (thisUserInfo.Roles.includes('Passer'))  //  || thisUserInfo.id ===129863
         // return (thisUserInfo.Roles.includes("ADMIN"))
         // return thisUserInfo.Roles.includes('ADMIN') // static check   || passStatic(thisUserInfo.email)
         // return passStatic(thisUserInfo.email)  // static check

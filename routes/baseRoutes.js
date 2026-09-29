@@ -97,9 +97,9 @@ router.post('/getPassStudentList',(req,res)=>{
 
 router.post('/getSHPeriods',(req,res)=>{
     const thisDate= req.body.search
-    const thisStudent = req.body.studentInfo
+    const thisStudentId = req.body.studentInfo
     console.log(req.body.search)
-    getStudyHallsForThisStudentOnThisDate(req,res,{thisDate,thisStudent})
+    getStudyHallsForThisStudentOnThisDate(req,res,{thisDate,thisStudentId})
     // selectNameForPass(req,res,req.body.search)
     // res.json(req.body)
 })
@@ -163,11 +163,6 @@ router.get('/testemailtemplate',(req,res)=>{
     res.render('testNewEmailTemplate')
 })
 
-router.get('/testmail',(req,res)=>{
-    testSendMail()
-    res.send('In Mail Send')
-})
-
 router.get('/testreadlog',async (req,res)=>{
 
     // const getLogInfo = await readCopyOfLog("./logs/app.log")
@@ -184,9 +179,11 @@ router.get('/testreadlog',async (req,res)=>{
 
 router.get('/map',(req,res)=>{
     logger.info({userId:req.user},"Getting Maps")
-    // req.log.debug(req.user,"Check Id")
-    // req.log.info(`Id=${req.user.id}`);
     res.sendFile(usMapPath)
+})
+
+router.get('/test',(req,res)=>{
+    res.render('testSelection')
 })
 
 /****************************************/

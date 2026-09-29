@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autocomplete</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+  <!-- <link rel="stylesheet" href="/css/autoDropdown.css"> -->
+
+  <style>
+  .event-input-container {
+  position: relative;
+  flex: 1 1 auto;
+  width: 1%;
+}
+
+.name-list {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  width: 100%;
+  max-height: 200px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  background-color: #fff;
+  border: 1px solid #ced4da;
+  border-top: 0;
+  border-radius: 0 0 0.375rem 0.375rem;
+}
+
+.name-list.show {
+  display: block;
+}
+
+.name-list li {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+.name-list li:hover {
+  background-color: #f8f9fa;
+}
+  </style>
+</head>
+
+<body>
+
+  <div class="autocomplete">
+    <input
+      id="numberInput"
+      type="text"
+      autocomplete="off"
+      placeholder="Type a number..."
+    >
+
+    <ul id="numberSuggestions" class="suggestions"></ul>
+  </div>
+
+  <div style="margin-top: 40px; padding: 20px; background: #eee;">
+    Other content on the page
+  </div>
+
+
+  <div class="container">
+    <div class="input-group event-name-wrapper">
+  <!-- <span class="input-group-text" id="basic-addon3">Event Name</span> -->
+
+  <div class="event-input-container">
+    <input
+      type="text"
+      class="form-control eventGrp shareValue"
+      id="nameTxt"
+      data-selvalue=""
+      aria-describedby="basic-addon3 basic-addon4"
+      autocomplete="off"
+    />
+
+    <ul id="nameList" class="name-list"></ul>
+  </div>
+</div>
+  </div>
+
+  <script>
+const gradeBracketRegex = /\[(\d{1,2})\]/
+const nameTxt = document.getElementById("nameTxt");
+const nameList = document.getElementById("nameList");
+
+nameTxt.addEventListener("input", () => {
+  if (nameTxt.value.trim().length === 0) {
+    nameList.classList.remove("show");
+    return;
+  }
+
+  nameList.classList.add("show");
+});
+
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".event-input-container")) {
+    nameList.classList.remove("show");
+  }
+});
+
+const setNewValues=(theseValues)=>{
+  nameList.innerHTML=""
+
+  theseValues.forEach((r)=>{
+    const thisLI= document.createElement('li')
+    thisLI.dataset.value=r.id
+    thisLI.textContent=`${r.lname}, ${r.fname} [${r.grade}] Test`
+    thisLI.addEventListener('click',()=>{
+      nameTxt.value=thisLI.textContent
+      nameTxt.dataset.selvalue=thisLI.dataset.value
+      nameList.classList.remove("show");
+    })
+
+    nameList.append(thisLI)
+  })
+}
+
+  nameTxt.addEventListener('keyup',(e)=>{
+          let thiskeyCode = nameTxt.value;
+          const postid="?"
+          const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+
+          console.log('thiskeyCode',thiskeyCode)
+          axios.post('/getPassStudentList',{
+            search:thiskeyCode,
+            postid:postid
+          },rsConfig).then((rsp)=>{
+            console.log('rsp',rsp)
+            const rspData = rsp.data
+
+            console.log('rspData',rspData)
+            
+            setNewValues(rspData)
+          })
+          .catch((e)=>{console.log(e)})
+        })
+
+        nameTxt.addEventListener('change',(e)=>{
+            console.log('e',e.target.id)  // ,e.target.data.value
+
+            // hideClearPeriodTable()
+
+            // gradeSpan.textContent=thisCurrentStudent.grade
+            // toReportOnDate.value =''
+            // atPeriodSpan.textContent=periodTextDefault
+
+            // requestorSignDiv.hidden=!allFieldsOk()
+        })
+  </script>
+
+<!-- <script src="./js/autoDropdown.js"></script> -->
+
+</body>
+</html>

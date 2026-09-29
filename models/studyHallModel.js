@@ -10,6 +10,10 @@ export  const getClasses=()=>{
         return knexPG('classes').select('*').where({is_active:true})
     }
 
+export  const getAllClints=()=>{
+        return knexPG('classes').select('clint').where({is_active:true})
+    }
+
 export  const getClassEnrollments=()=>{
         return knexPG('class_enrollment').select('*').where({is_active:true})
     }

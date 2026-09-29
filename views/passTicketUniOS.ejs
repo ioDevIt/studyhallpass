@@ -74,47 +74,6 @@
                     color: inherit;
                 }
             }
-
-
-
-
- .inputContainer {
-  position: relative;
-  width: 300px;
-}
-
-.name-list {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 1000;
-  width: 100%;
-  max-height: 200px;
-  margin: 0;
-  padding: 0;
-  overflow-y: auto;
-  list-style: none;
-  background-color: #fff;
-  border: 1px solid #ced4da;
-  border-top: 0;
-}
-
-.name-list.show {
-  display: block;
-}
-
-.name-list li {
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-.name-list li:hover,
-.name-list li.active {
-  color: #fff;
-  background-color: #0d6efd;
-}
-
     </style>
     <script>
         const inMode=0
@@ -133,51 +92,28 @@
 
     <!-- Alert Modal -->
     <div id="alertModal" class="modal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 id="alertModalTitle" class="modal-title">Modal title</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="alertModalMessage">Modal body text goes here.</p>
-            </div>
-            <div class="modal-footer">
-                <button id="closeAlertModal" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-            </div>
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 id="alertModalTitle" class="modal-title">Modal title</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+        <div class="modal-body">
+            <p id="alertModalMessage">Modal body text goes here.</p>
+        </div>
+        <div class="modal-footer">
+            <button id="closeAlertModal" type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
+    </div>
     </div>
     
     <div class="container mt-3">
         <div class="h2 text-center">ʻIOLANI SCHOOL STUDY HALL EXCUSE</div>
         <form class="row g-3 mt-3">
-
-                        <!-- <input id="nameTxt_Q" class="form-select form-select-sm text-danger w-auto d-inline-block" aria-describedby="name-desc"  list="nameTxtList" placeholder="LastName, FirstName" type="text" name="nameTxt" value="" hidden> -->
-            <!-- <datalist id="nameTxtList"></datalist> -->
-
             <div class="">
-            Please excuse 
-            
-  <span class="inputContainer">
-  <input
-    id="nameTxt"
-    class="form-select form-select-sm text-danger w-auto d-inline-block form-control eventGrp shareValue"
-    name="nameTxt"
-    type="text"
-    placeholder="LastName, FirstName"
-    data-selvalue=""
-    autocomplete="off"
-  />
-
-  <ul id="nameList" class="form-select-sm name-list">
-    <li data-value="two">Two</li>
-    <li data-value="three">Three</li>
-  </ul>
-</span>
-            
-
-
+            Please excuse <input id="nameTxt" class="form-select form-select-sm text-danger w-auto d-inline-block" aria-describedby="name-desc"  list="nameTxtList" placeholder="LastName, FirstName" type="text" name="nameTxt" value="" >
+            <datalist id="nameTxtList"></datalist>
                 , grade <span id="gradeSpan" class="text-danger"><%= ( typeof grade=='undefined'?'[grade]':grade) %></span>,
 
 
@@ -227,7 +163,7 @@
     </div>
 
     <!-- Separator -->
-    <span class="fw-bold text-muted">OR Part Report At</span>
+    <span class="fw-bold text-muted">OR</span>
 
     <!-- Time option -->
     <div>
@@ -315,7 +251,6 @@
         const splash = document.getElementById("thinkingSplash")
         const thinkingText = document.getElementById("thinkingText")
         const nameTxt=document.getElementById('nameTxt')
-        const nameList = document.getElementById('nameList')
         const gradeSpan=document.getElementById('gradeSpan')
         const toReportOnDate = document.getElementById('toReportOnDate')
         const periodTable = document.getElementById('periodTable')
@@ -337,7 +272,7 @@
         const currentUserSpan= document.getElementById('currentUserSpan')
         const requestorRequestorSignDiv =  document.getElementById('requestorRequestorSignDiv')
         
-        // const thisCurrentStudent={};
+        const thisCurrentStudent={};
         const gradeBracketRegex = /\[(\d{1,2})\]/
         const periodTextDefault = '[Select Period From Table]'
 
@@ -347,9 +282,7 @@
 
 
         const sendPassData=()=>{
-          const packageData={
-            name:nameTxt.value
-            ,nid:nameTxt.dataset.selvalue
+          const packageData={name:nameTxt.value
             ,grade:gradeSpan.textContent
             ,onDate:toReportOnDate.value
             ,atPeriod:atPeriodSpan.textContent
@@ -394,42 +327,56 @@
           .catch((e)=>{console.log(e)})
         }
 
-        
+
         nameTxt.addEventListener('keyup',(e)=>{
-            console.log('nameTxt keyup')
+          let thiskeyCode = nameTxt.value;
+          const postid="?"
+          const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
 
-            if(/^[a-zA-Z0-9]$/.test(event.key)){
-                    let thiskeyCode = nameTxt.value;
-                    const postid="?"
-                    const rsConfig={headers:{"X-XSRF-TOKEN":postid},withXSRFToken:true,xsrfHeaderName: 'X-XSRF-TOKEN', responseType:'json' }
+          console.log('thiskeyCode',thiskeyCode)
+          axios.post('/getPassStudentList',{
+            search:thiskeyCode,
+            postid:postid
+          },rsConfig).then((rsp)=>{
+            console.log('rsp',rsp)
+            const rspData = rsp.data
 
-                    console.log('thiskeyCode',thiskeyCode)
-                    axios.post('/getPassStudentList',{
-                    search:thiskeyCode,
-                    postid:postid
-                    },rsConfig).then((rsp)=>{
-                    console.log('rsp',rsp)
-                    const rspData = rsp.data
-                    console.log('rspData',rspData)
-                    
-                    setNewValues(rspData)
-                    })
-                    .catch((e)=>{console.log(e)})
-                }
+            console.log('rspData',rspData)
+            
+            setNewValues(rspData)
+          })
+          .catch((e)=>{console.log(e)})
+        })
 
-                })
+        nameTxt.addEventListener('change',()=>{
+            const thisValueArray = nameTxt.value.split('-')
+            // const toFindId = (thisValueArray.length===2?thisValueArray[1].trim():'')
+            const toFindGrade = nameTxt.value.match(gradeBracketRegex)
+            // console.log(nameTxt.value.match(gradeBracketRegex))
+            thisCurrentStudent.id=(thisValueArray.length===2?thisValueArray[1].trim():'')
+            thisCurrentStudent.grade= (toFindGrade.length===2?toFindGrade[1]:'')
+            console.log('thisValueArray',thisValueArray)
+            console.log('thisCurrentStudent',thisCurrentStudent)
+
+            hideClearPeriodTable()
+
+            gradeSpan.textContent=thisCurrentStudent.grade
+            toReportOnDate.value =''
+            atPeriodSpan.textContent=periodTextDefault
+
+            requestorSignDiv.hidden=!allFieldsOk()
+        })
 
         toReportOnDate.addEventListener('change',(e)=>{
           const thisDate = e.target.value
           console.log(thisDate)
-          console.log('----------------IN Change----------------')
 
             atPeriodSpan.textContent=periodTextDefault
             fromTime.value=''
             fromAll.value=''
 
             if(thisDate!==''){
-                getSHPeriodsForStudent(thisDate)
+                getSHPeriodsForStudent(thisDate,thisCurrentStudent)
                 atPeriodSpan.textContent=periodTextDefault
                 requestorSignDiv.hidden=!allFieldsOk()
             }else{
@@ -440,9 +387,8 @@
         toReportOnDate.addEventListener('input',(e)=>{
           const thisDate = e.target.value
           console.log(thisDate)
-          console.log('----------------IN input----------------')
             if(thisDate!==''){
-                getSHPeriodsForStudent(thisDate)
+                getSHPeriodsForStudent(thisDate,thisCurrentStudent)
                 atPeriodSpan.textContent=periodTextDefault
                 requestorSignDiv.hidden=!allFieldsOk()
             }else{
@@ -488,7 +434,25 @@
             }
         })
 
-        const getSHPeriodsForStudent=(thisDate)=>{ // ,studentInfo
+        const setNewValues=(theseValues)=>{
+          const currentSelectionList = {}
+          nameTxtList.innerHTML="";
+
+          theseValues.forEach((thisRow)=>{
+            console.log('thisRow',thisRow)
+            let newEl=document.createElement('option')
+            newEl.value =  `${thisRow.lname}, ${thisRow.pname} [${thisRow.grade}] - ${thisRow.id}`
+            // newEl.textContent = thisRow.lname
+            newEl.dataset.uid = thisRow.uid
+
+            currentSelectionList[thisRow.uid]=thisRow
+
+            nameTxtList.append(newEl)
+          })
+        }
+
+
+        const getSHPeriodsForStudent=(thisDate,studentInfo)=>{
             // check thisDate, studentInfo
             // disable name search and date search
 
@@ -502,7 +466,7 @@
 
                 axios.post('/getSHPeriods',{
                     search:thisDate,
-                    studentInfo:nameTxt.dataset.selvalue,
+                    studentInfo:thisCurrentStudent,
                     postid:postid
                 },rsConfig).then((rsp)=>{                   
                     const rspData = rsp.data
@@ -623,11 +587,11 @@
             const targetMin = (event.target.min.replace('AM','').replace('PM','').replace(':','').replaceAll(' ','')*1)+(event.target.min.includes('PM')?1200:0)
             const targetMax = (event.target.max.replace('AM','').replace('PM','').replace(':','').replaceAll(' ','')*1)+(event.target.max.includes('PM')?1200:0)
 
-            // console.log(timeCompare)
-            // console.log(targetMin)
-            // console.log(targetMax)
-            // console.log('timeCompare <= targetMin ',timeCompare <= targetMin )
-            // console.log('timeCompare < targetMax ',timeCompare < targetMax )
+            console.log(timeCompare)
+            console.log(targetMin)
+            console.log(targetMax)
+            console.log('timeCompare <= targetMin ',timeCompare <= targetMin )
+            console.log('timeCompare < targetMax ',timeCompare < targetMax )
 
             if (timeCompare && (timeCompare < targetMin || timeCompare > targetMax)) {
                 console.log('Outside Valid Range')
@@ -663,16 +627,16 @@
         }
 
         const allFieldsOk=()=>{
-            // console.log('Check Fields')
-            // console.log('nameTxt.value',nameTxt.value)
-            // console.log('gradeSpan.textContent',gradeSpan.textContent)
-            // console.log('toReportOnDate.value',toReportOnDate.value)
-            // console.log('atPeriodSpan.textContent',atPeriodSpan.textContent)
+            console.log('Check Fields')
+            console.log('nameTxt.value',nameTxt.value)
+            console.log('gradeSpan.textContent',gradeSpan.textContent)
+            console.log('toReportOnDate.value',toReportOnDate.value)
+            console.log('atPeriodSpan.textContent',atPeriodSpan.textContent)
             
-            // console.log('fromAll.checked',fromAll.checked)
-            // console.log('fromTime.value',fromTime.value)
-            // console.log('destinationTxt.value',destinationTxt.value)
-            // console.log('reasonTxtArea.value',reasonTxtArea.value)
+            console.log('fromAll.checked',fromAll.checked)
+            console.log('fromTime.value',fromTime.value)
+            console.log('destinationTxt.value',destinationTxt.value)
+            console.log('reasonTxtArea.value',reasonTxtArea.value)
 
             return (nameTxt.value!=='' && gradeSpan.textContent!=='' && toReportOnDate.value!=='' && atPeriodSpan.textContent!==periodTextDefault
                && (fromAll.checked || fromTime.value!=='') && fromTime.checkValidity() && destinationTxt.value!=='' && reasonTxtArea.value!==''
@@ -685,127 +649,6 @@
         }
 
         initSettings()
-
-
-
-const setNewValues=(theseValues)=>{
-  nameList.innerHTML=""
-  console.log('In setNewValues')
-
-  theseValues.forEach((r)=>{
-    const thisLI= document.createElement('li')
-    thisLI.dataset.value=r.id
-    thisLI.textContent=`${r.lname}, ${r.fname} [${r.grade}]`
-    thisLI.dataset.grade=r.grade
-    thisLI.addEventListener('click',()=>{
-      nameTxt.value=thisLI.textContent
-      nameTxt.dataset.selvalue=thisLI.dataset.value
-      nameTxt.dataset.selgrade=r.grade
-      selectItem(thisLI)
-      nameList.classList.remove("show");
-    })
-
-    nameList.append(thisLI)
-  })
-
-  nameList.classList.add("show");
-}
-
-
-
-  nameTxt.addEventListener('change',(e)=>{
-            console.log('nameTxt Change')
-            console.log('e',e.target.id)
-
-            hideClearPeriodTable()
-
-            gradeSpan.textContent=nameTxt.dataset.selgrade
-            toReportOnDate.value =''
-            atPeriodSpan.textContent=periodTextDefault
-
-            requestorSignDiv.hidden=!allFieldsOk()
-        })
-
-let activeIndex = -1;
-
-function getVisibleItems() {
-  return [...nameList.querySelectorAll("li")].filter(
-    (item) => item.style.display !== "none"
-  );
-}
-
-
-function selectItem(item) {
-  nameTxt.value = item.textContent;
-  nameTxt.dataset.selvalue = item.dataset.value;
-  nameTxt.dataset.selgrade = item.dataset.grade
-
-  hideClearPeriodTable()
-  gradeSpan.textContent=item.dataset.grade
-
-  nameList.classList.remove("show");
-  activeIndex = -1;
-}
-
-function updateActiveItem(items) {
-  items.forEach((item) => item.classList.remove("active"));
-
-  const activeItem = items[activeIndex];
-
-  if (activeItem) {
-    activeItem.classList.add("active");
-
-    activeItem.scrollIntoView({
-      block: "nearest"
-    });
-  }
-}
-
-nameTxt.addEventListener("keydown", (event) => {
-  if(!["ArrowDown","ArrowUp","Enter","Escape"].includes(event.key)){return}
-
-  const visibleItems = getVisibleItems();
-    console.log("nameTxt keydown")
-
-  if (visibleItems.length === 0) return;
-
-  if (event.key === "ArrowDown") {
-    event.preventDefault();
-
-    activeIndex++;
-
-    if (activeIndex >= visibleItems.length) {
-      activeIndex = 0;
-    }
-
-    updateActiveItem(visibleItems);
-  }
-
-  if (event.key === "ArrowUp") {
-    event.preventDefault();
-
-    activeIndex--;
-
-    if (activeIndex < 0) {
-      activeIndex = visibleItems.length - 1;
-    }
-
-    updateActiveItem(visibleItems);
-  }
-
-  if (event.key === "Enter") {
-    event.preventDefault();
-
-    if (activeIndex >= 0) {
-      selectItem(visibleItems[activeIndex]);
-    }
-  }
-
-  if (event.key === "Escape") {
-    nameList.classList.remove("show");
-    activeIndex = -1;
-  }
-});
 
     </script>
 </body>

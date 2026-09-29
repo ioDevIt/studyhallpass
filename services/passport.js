@@ -12,7 +12,8 @@ import {trace} from "../modules/Mules/logsModule.js"
 const dotEnv = dotEnvMod()
 const vapiSSOFn=vapiSSO()
 
-const accessPasses=['syamashiro@iolani.org','sweaver@iolani.org','kasato@iolani.org','bchun@iolani.org','mdaggett@iolani.org','larafeld@iolani.org','ahiga@iolani.org','kkadofukuda@iolani.org','akaonohi@iolani.org','nlau@iolani.org','hlee@iolani.org','kmarks@iolani.org','anakagawa@iolani.org','spark@iolani.org','csakamoto@iolani.org','ptom@iolani.org','nhue@iolani.org','eyamamoto@iolani.org','lyoneda@iolani.org']
+const accessPasses=['syamashiro@iolani.org','sweaver@iolani.org','kasato@iolani.org','bchun@iolani.org','mdaggett@iolani.org','larafeld@iolani.org','ahiga@iolani.org','kkadofukuda@iolani.org','akaonohi@iolani.org','nlau@iolani.org','hlee@iolani.org','kmarks@iolani.org','anakagawa@iolani.org','spark@iolani.org','csakamoto@iolani.org','ptom@iolani.org','nhue@iolani.org','eyamamoto@iolani.org','lyoneda@iolani.org'
+    ,'khayashi@iolani.org','cohira@iolani.org','laraishiraishi@iolani.org']
 
 
 const setPassport =(passport)=>{
@@ -145,7 +146,7 @@ passport.use(new OAuth2Strategy({
 
         if(thisInfo.isVeracross){
             searchAddObj.type="V"
-            searchAddObj.id = 123980 // thisInfo.data.sub
+            searchAddObj.id =  thisInfo.data.sub //112671 // thisInfo.data.sub  112671
             searchAddObj.email=thisInfo.data.email
             searchAddObj.domain="veracross"
             searchAddObj.VOnly={Roles:thisInfo.data.roles}
@@ -158,7 +159,7 @@ passport.use(new OAuth2Strategy({
             if(searchAddObj.Roles.includes('Faculty') || searchAddObj.Roles.includes('Staff'))
                 { 
                     // accessPasses.includes(searchAddObj.email) || 
-                    if(accessPasses.includes(searchAddObj.email) || await isUserTrackSHAttendance(searchAddObj.id)){ // Add Student as Role for Testing
+                    if(true || accessPasses.includes(searchAddObj.email) || await isUserTrackSHAttendance(searchAddObj.id)){ // Add Student as Role for Testing
                         searchAddObj.Roles.push('Passer')
                     }
                 }    
