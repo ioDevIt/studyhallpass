@@ -4,7 +4,8 @@ import {getCurrentSchoolYearForVera} from './helpersModule.js'
 import {getClassPermissionsByPersonIdSchoolYear} from './VAPIReader.js'
 
 const VRolesStaffParent =['Staff1','Parent','Staff']
-const accessPasses=['syamashiro@iolani.org','sweaver@iolani.org','kasato@iolani.org','bchun@iolani.org','mdaggett@iolani.org','larafeld@iolani.org','ahiga@iolani.org','kkadofukuda@iolani.org','akaonohi@iolani.org','nlau@iolani.org','hlee@iolani.org','kmarks@iolani.org','anakagawa@iolani.org','spark@iolani.org','csakamoto@iolani.org','ptom@iolani.org','nhue@iolani.org','eyamamoto@iolani.org','lyoneda@iolani.org']
+const accessPasses=['syamashiro@iolani.org','sweaver@iolani.org','kasato@iolani.org','bchun@iolani.org','mdaggett@iolani.org','larafeld@iolani.org','ahiga@iolani.org','kkadofukuda@iolani.org','akaonohi@iolani.org','nlau@iolani.org','hlee@iolani.org','kmarks@iolani.org','anakagawa@iolani.org','spark@iolani.org','csakamoto@iolani.org','ptom@iolani.org','nhue@iolani.org','eyamamoto@iolani.org','lyoneda@iolani.org'
+    ,'khayashi@iolani.org','cohira@iolani.org','laraishiraishi@iolani.org','snakao@iolani.org']
 
 const passVRolesStaffParent=(thisUserInfo)=>{
     const passFilter = VRolesStaffParent.filter((r)=>{
@@ -31,7 +32,7 @@ export const passStatic = (thisPassString) =>{
 export const passFirstFence=(thisUserInfo)=>{
         // console.log('thisUserInfo',thisUserInfo)
     // Uncomment the one to use
-        return (thisUserInfo.Roles.includes('Faculty'))  //  || thisUserInfo.id ===129863
+        return (thisUserInfo.Roles.includes('Faculty') || accessPasses.includes(thisUserInfo.email))  //  || thisUserInfo.id ===129863
         // return (thisUserInfo.Roles.includes('Passer'))  //  || thisUserInfo.id ===129863
         // return (thisUserInfo.Roles.includes("ADMIN"))
         // return thisUserInfo.Roles.includes('ADMIN') // static check   || passStatic(thisUserInfo.email)
