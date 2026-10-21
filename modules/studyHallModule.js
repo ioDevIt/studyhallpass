@@ -56,7 +56,7 @@ export const setClassPage = (req,res,thisClassId)=>{
         })
 
         const attendanceDictionary={}
-        const theseAttendances = await getTodaysAttendance(theseStudentPIDs.join(';'))        
+        const theseAttendances = await getTodaysAttendance(theseStudentPIDs.join('%3B'))        
 
         theseAttendances.forEach((r,i)=>{
             console.log('r.early_dismissal_time',r.early_dismissal_time)

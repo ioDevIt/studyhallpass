@@ -513,9 +513,13 @@
                     if(rspData.status==='Not Ok'){
                         showAlertModal('Finding Period Issue',rspData.message)
                     }else{
-                        setTable(periodTableBody,rspData)
-                        showTable()
-                        allFieldsOk()
+                        if(rspData.length>0){
+                            setTable(periodTableBody,rspData)
+                            showTable()
+                            allFieldsOk()
+                        }else{
+                            showAlertModal('Notice','No Study Hall found for this date')
+                        }
                     }
                 })
                 .catch((e)=>{console.log(e);hideThinking()})
@@ -620,12 +624,16 @@
         const validateTimeSelected=(e)=>{
             const time = event.target.value;
             const timeCompare = (time.replace(':','')*1)
-            const targetMin = (event.target.min.replace('AM','').replace('PM','').replace(':','').replaceAll(' ','')*1)+(event.target.min.includes('PM')?1200:0)
-            const targetMax = (event.target.max.replace('AM','').replace('PM','').replace(':','').replaceAll(' ','')*1)+(event.target.max.includes('PM')?1200:0)
+            const targetMinHour =(event.target.min.split(':')[0]*1)
+            const targetMaxHour =(event.target.max.split(':')[0]*1)
+            const targetMin = (event.target.min.replace('AM','').replace('PM','').replace(':','').replaceAll(' ','')*1)+((event.target.min.includes('PM') && targetMinHour<12)?1200:0)
+            const targetMax = (event.target.max.replace('AM','').replace('PM','').replace(':','').replaceAll(' ','')*1)+((event.target.max.includes('PM')&& targetMaxHour<12)?1200:0)
 
             // console.log(timeCompare)
-            // console.log(targetMin)
-            // console.log(targetMax)
+            console.log(targetMinHour)
+            console.log(targetMaxHour)
+            console.log(targetMin)
+            console.log(targetMax)
             // console.log('timeCompare <= targetMin ',timeCompare <= targetMin )
             // console.log('timeCompare < targetMax ',timeCompare < targetMax )
 

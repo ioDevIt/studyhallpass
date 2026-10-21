@@ -44,6 +44,13 @@ router.get('/',(req,res)=>{
     res.json(req.user)
 })
 
+/************* DEV POST **********************/
+router.post('/updateClasses', async (req,res)=>{
+    const studyHallClasses= await updateClasses(req,res)
+
+    res.json({studyHallClasses}) // studyHallClasses,len:studyHallClasses.length,s
+})
+
 
 /************* Production POST **********************/
 router.post('/updateClasses', async (req,res)=>{
@@ -79,6 +86,14 @@ router.get('/updateClasses', async (req,res)=>{
 
     res.json({studyHallClasses}) // studyHallClasses,len:studyHallClasses.length,s
 })
+
+router.get('/updateEnrollments', async (req,res)=>{
+    const updateFacStudentsEnrollmentsRsp = await updateFacStudentsEnrollments()
+    res.json(updateFacStudentsEnrollmentsRsp)
+    return
+})
+
+/******************************************************/
 
 router.get('/updateEnrollments', async (req,res)=>{
     // res.json(testEnrollmentsData)

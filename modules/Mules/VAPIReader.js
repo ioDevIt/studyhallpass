@@ -59,13 +59,13 @@ export  const getAllCurrentSchoolYearUSClassSchedules=async ()=>{
 
 export  const getAllCurrentSchoolYearUSClassSchedulesByFacId=async (facIdsArray)=>{
         const thisSchoolYear = 2026
-        const thisURL = `https://api.veracross.com/iolani/v3/academics/class_schedules?school_level=4&day_id=14;15&school_year=${thisSchoolYear}&primary_teacher_id=${facIdsArray.join(';')}`
+        const thisURL = `https://api.veracross.com/iolani/v3/academics/class_schedules?school_level=4&day_id=14;15&school_year=${thisSchoolYear}&primary_teacher_id=${facIdsArray.join('%3B')}`
         
         return vapiFetchModule.fetchVAPI(thisURL,"academics.class_schedules:list")
     }
 
 export  const getEnrolledStudentsByClassIntId=async (theseClassIntIdArray)=>{   
-        const thisURL = `https://api.veracross.com/iolani/v3/academics/enrollments?currently_enrolled=true&internal_class_id=${theseClassIntIdArray.join(';')}`
+        const thisURL = `https://api.veracross.com/iolani/v3/academics/enrollments?currently_enrolled=true&internal_class_id=${theseClassIntIdArray.join('%3B')}`
         const thisScope = "academics.enrollments:list"
 
         return await fetchForReader(thisURL,thisScope)
@@ -93,7 +93,7 @@ export  const getStudentsAPIInfoByID=async (thesePIDs,filterBy,mapData)=>{
     }
 
 export  const getUSStudentsByAdvisors=async (advisorIdsArray,filterBy)=>{   
-        const thisURL = `https://api.veracross.com/iolani/v3/students?advisor_id=${advisorIdsArray.join(';')}`
+        const thisURL = `https://api.veracross.com/iolani/v3/students?advisor_id=${advisorIdsArray.join('%3B')}`
         const thisScope = "students:list"
 
         return await fetchForReader(thisURL,thisScope)        

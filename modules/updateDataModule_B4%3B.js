@@ -1,0 +1,321 @@
+import {getClasses,getClassEnrollments,getStudents,getUniqueStudentPIDSID} from "../models/studyHallModel.js"
+import {compareLists,createUIDNooks,uidNooks} from './Mules/UpdateFileData/compareToolsModule.js'
+import {getAllUSClassesBySchoolYear,getAllCurrentSchoolYearUSClassSchedulesByFacId,getEnrolledStudentsByClassIntId
+    ,getStudentsAPIInfoByID,getUSStudentsByAdvisors,getEnrolledStudentsByClassIntId_Map,getAllClassesByClint} from './Mules/VAPIReader.js'
+
+const usAdvisors=[123980,123569,104293,123756,130911,130451,104324,123839,128820,126749,123157,114177,123441,122617]
+
+export const updateClasses = async (req,res)=>{
+    const currentStudyHallClasses =[]
+    const classesUS = await getAllUSClassesBySchoolYear(2026)
+    const classesUSSH = classesUS.filter((r)=>(r.class_id.substring(0,2)==='SH' && r.room_id !==0))
+    // .filter((r)=>(!r.class_id.includes('SH08')))
+
+    const currentClassIntList=classesUSSH.map((r)=>r.id)
+    // const enrolledStudents = await getEnrolledStudentsByClassIntId_Map(currentClassIntList.join('%3B'))
+    // const classIdsWithEnrollments = new Set()
+
+    // enrolledStudents.forEach((r)=>{
+    //     classIdsWithEnrollments.add(r.clint)
+    // })
+
+    // const shIdsWithEnrollmentsAandRooms = [...classIdsWithEnrollments]
+    
+    const classUSSHDictionary = {}
+    const classesUSSHPRimaryTeacherId = []
+
+    // console.log(classesUS)
+    // console.log(classesUS.length)
+    // const lTest = classesUS.length
+    // return {shIdsWithEnrollmentsAandRooms}
+    // return {classesUS,lTest:classesUS.length,currentClassIntList,lTEST2:currentClassIntList.length}
+
+    classesUSSH.forEach((r)=>{
+        if(!(r.id in classUSSHDictionary)){
+            classUSSHDictionary[r.id]={id:r.id,class_id:r.class_id,description:r.description}
+        }
+
+        if(!(r.primary_teacher_id in classesUSSHPRimaryTeacherId)){classesUSSHPRimaryTeacherId.push(r.primary_teacher_id)}
+    })
+
+    const classSchedules = await getAllCurrentSchoolYearUSClassSchedulesByFacId(classesUSSHPRimaryTeacherId)
+    const studyHallClasses = classSchedules
+            // .filter((r)=>(!r.class_id.includes('SH08')))
+            .filter((r)=>{
+                if( (r.class_id.substring(0,2)==='SH') && (!currentStudyHallClasses.includes(r.internal_class_id)) 
+                    && (currentClassIntList.includes(r.internal_class_id))
+                    && (r.block.abbreviation!=='Lunch')
+                    ){
+                    currentStudyHallClasses.push(r.internal_class_id)
+                    return true
+                }
+                else{
+                    return false
+                }
+            })
+            .map((r)=>{
+                console.log('r',r)
+                    return {clint:r.internal_class_id,classid:r.class_id,fac_id:r.primary_teacher_id
+                        ,term:r.grading_period.abbreviation.replace('US ',''),gradingPeriodId:r.grading_period.id,day:r.day.abbreviation
+                        ,period:r.block.abbreviation.replace('P',''), room:r.room.abbreviation, roomId:r.room.id
+                        ,name:classUSSHDictionary[r.internal_class_id].description
+                    }
+                })
+
+    const dbClasses = await getClasses()
+    const comparedInfo = compareLists(studyHallClasses,dbClasses,(r)=>r.clint,['term','period','room'])
+
+
+    const currentUIDNooks = createUIDNooks(comparedInfo,'classes',(r)=>{return {clint:r.clint,classid:r.classid,name:r.name,period:r.period,term:r.term,room:r.room}}
+            ,(r)=>r.id,(r)=>r)
+
+
+    const uidNooksReturns = await uidNooks(currentUIDNooks)
+
+    // return {classSchedules}
+
+    return {classesUS,classUSSHDictionary,classesUSSHPRimaryTeacherId
+        ,classesUSSHPRimaryTeacherIdLen:classesUSSHPRimaryTeacherId.length,classSchedules,classSchedulesLen:classSchedules.length
+        ,studyHallClasses,comparedInfo
+        ,currentUIDNooks,uidNooksReturns
+        ,currentStudyHallClasses
+        ,dbClasses
+        }
+
+
+        
+
+
+
+    // {"clint":20345,"classid":"SH070004","fac_id":103023,"gradingPeriod":"ALL","gradingPeriodId":50,"day":"US E","period":"P1","room":"C-105","roomId":197}
+    // return {studyHallClasses,dbClasses}
+}
+
+export const updateFacStudentsEnrollments = async () =>{
+    // const currentStudyHallClasses =[]
+    const classesUS = await getAllUSClassesBySchoolYear(2026)
+    const classesUSSH = classesUS.filter((r)=>(r.class_id.substring(0,2)==='SH')).map((r)=>r.id)
+    const classIdsString = classesUSSH.join('%3B')
+    const theseUniqueStudentsSet = new Set()
+    const enrollmentsData ={}    
+
+    const enrolledStudents = await getEnrolledStudentsByClassIntId_Map(classIdsString)
+    const classIdsWithEnrollments = new Set()
+
+    enrolledStudents.forEach((r)=>{
+        classIdsWithEnrollments.add(r.clint)
+    })
+ 
+    const classesInfo = await getAllClassesByClint([...classIdsWithEnrollments].join('%3B'))
+    const classInfoDictionary ={}
+
+    classesInfo.forEach((r)=>{
+        if(!(r.id in classInfoDictionary)){classInfoDictionary[r.id]={clint:r.id,classId:r.class_id,description:r.description}}
+    })
+    console.log(classInfoDictionary)
+
+    enrolledStudents.forEach((r)=>{
+        theseUniqueStudentsSet.add(r.pid)
+    })
+
+    const theseUniqueStudents =[...theseUniqueStudentsSet]
+
+    const usStudents = await getUSStudentsByAdvisors(usAdvisors)
+    const enrolledStudentDictionary ={}
+
+    // make currentStudentID Dictionary from DB
+    // add to enrolledStudentDictionary
+
+    // that way only looking up students new to study hall only.  Only the first time it will be long
+
+    const currentPIDSID = await getUniqueStudentPIDSID()
+    const currentPIDSIDDictionary = {}
+
+    currentPIDSID.forEach((r)=>{
+        currentPIDSIDDictionary[r.pid]=r
+    })
+
+    const unFoundSID=[]
+
+    usStudents.forEach((r)=>{
+        if(theseUniqueStudents.includes(r.id)){
+            let thisSID ='???'
+            if(r.id in currentPIDSIDDictionary){
+                thisSID=currentPIDSIDDictionary[r.id].sid
+            }
+            else{
+                unFoundSID.push(r.id)
+            }
+
+            enrolledStudentDictionary[r.id]={
+                pid:r.id,sid:thisSID,email:r.email_1,fname:r.first_name,lname:r.last_name,pname:r.preferred_name,grade:r.grade_level
+            }
+        }
+    })
+
+    const newStudentDictionary ={}
+    // const startDT = new Date()
+
+    for(let i=0;i<unFoundSID.length;i++){
+        const thisStudentInfo = await getStudentsAPIInfoByID(unFoundSID[i])
+        if(unFoundSID[i] in enrolledStudentDictionary){
+            console.log(thisStudentInfo)
+            enrolledStudentDictionary[unFoundSID[i]].sid = (thisStudentInfo.length===1?thisStudentInfo[0].sid:'???')
+        }
+    }
+
+    const studentInfoReference=[]
+
+    for(const [key,value] of Object.entries(enrolledStudentDictionary)){
+        studentInfoReference.push(value)
+    }
+
+    enrolledStudents.forEach((r)=>{
+        if(!(r.clint in enrollmentsData)){enrollmentsData[r.clint]={clint:r.clint,enrollments:[]}}
+
+        enrollmentsData[r.clint].enrollments.push({pid:r.pid,classid:classInfoDictionary[r.clint].classId ,sid:enrolledStudentDictionary[r.pid].sid})
+    })
+
+        // const enrollmentsObj= {studentInfoReference:testData,classEnrollmentDictionary:testEnrollmentsData}
+        const enrollmentsObj= {studentInfoReference,classEnrollmentDictionary:enrollmentsData}  // await getEnrollments(true)
+    
+        const updateFacStudentsReturns = await updateFacStudents(enrollmentsObj.studentInfoReference)
+    
+        let enrollmentsArray =[]
+    
+        for(const[key,value] of Object.entries(enrollmentsObj.classEnrollmentDictionary)){ // same ast enroolementsObj to test
+            enrollmentsArray=enrollmentsArray.concat(value.enrollments)
+        }
+    
+        const updateEnrollmentReturns = await updateEnrollments(enrollmentsArray)
+
+        return updateEnrollmentReturns
+}
+
+export const getEnrollments = async (useDB)=>{
+    let theseClasses
+    if(useDB){
+        theseClasses = await getClasses()   // ok if updateClasses runs first, since the classes should be accurate
+    }
+    else{
+        const theseAPIClasses =await getAllUSClassesBySchoolYear(2026)
+
+        console.log(1/n) // need to map API Classes to db Classes
+    }
+
+  
+    const theseClassClints = theseClasses.map((r)=>r.clint)
+    const classEnrollments = await getEnrolledStudentsByClassIntId(theseClassClints)
+
+    const currentEnrolledStudentsSet=new Set()
+    
+
+    classEnrollments.forEach((r)=>{
+        currentEnrolledStudentsSet.add(r.person_id)
+        // if(!(currentEnrolledStudents.includes(r.person_id))){currentEnrolledStudents.push(r.person_id)}
+    })
+
+    const currentEnrolledStudents = [...currentEnrolledStudentsSet] // needs to come after the above to be set
+
+    const usStudents = (await getUSStudentsByAdvisors(usAdvisors))
+        .filter((r)=>{
+            return (currentEnrolledStudents.includes(r.id))
+        })
+        .map((r)=>{
+        return {pid:r.id,fname:r.first_name,lname:r.last_name,pname:r.preferred_name,email:r.email_1,grade:r.grade_level}
+    })
+
+    
+    let studentInfoReference = []
+    const studentInfoReferenceDictionary ={}
+    const studentInfoDictionary = {}
+
+    const batchSize = 200
+    for(let i=0;i<currentEnrolledStudents.length;i+= batchSize)
+    {
+        const thisArray = currentEnrolledStudents.slice(i,i+batchSize)
+        studentInfoReference = studentInfoReference.concat(await getStudentsAPIInfoByID(thisArray.join('%3B')))  //currentEnrolledStudents.join('%3B'))
+    }
+
+    usStudents.forEach((r)=>{
+        studentInfoDictionary[r.pid]=r
+    })
+
+    const classDictionary={}
+    const studentDictionary ={} // by pid
+    const classEnrollmentDictionary={}  // by clint
+
+
+    studentInfoReference.forEach((r)=>{
+        studentInfoReferenceDictionary[r.pid]=r
+
+        if(r.pid in studentInfoDictionary){
+            studentInfoReferenceDictionary[r.pid].fname= studentInfoDictionary[r.pid].fname
+            studentInfoReferenceDictionary[r.pid].lname= studentInfoDictionary[r.pid].lname
+            studentInfoReferenceDictionary[r.pid].pname= studentInfoDictionary[r.pid].pname
+            studentInfoReferenceDictionary[r.pid].email= studentInfoDictionary[r.pid].email
+            studentInfoReferenceDictionary[r.pid].grade= studentInfoDictionary[r.pid].grade
+        }
+    })
+
+    // return currentEnrolledStudentsSet
+
+    theseClasses.forEach((r)=>{
+        if(!(r.clint in classDictionary)){classDictionary[r.clint]={}}
+
+        classDictionary[r.clint].classid=r.classid
+        classDictionary[r.clint].name=r.name
+    })
+
+    classEnrollments.forEach((r)=>{
+        if(!(r.person_id in studentDictionary)){
+            
+            studentDictionary[r.person_id]={
+            pid:r.person_id,sid:studentInfoReferenceDictionary[r.person_id].sid,grade:studentInfoReferenceDictionary[r.person_id].grade
+            ,pname:studentInfoReferenceDictionary[r.person_id].pname
+            ,fname:studentInfoReferenceDictionary[r.person_id].fname
+            ,lname:studentInfoReferenceDictionary[r.person_id].lname
+            ,email:studentInfoReferenceDictionary[r.person_id].email}}
+
+        if(!(r.internal_class_id in classEnrollmentDictionary)){classEnrollmentDictionary[r.internal_class_id]={clint:r.internal_class_id
+            ,enrollments:[]}
+            }
+
+        const thisClassId = (r.internal_class_id in classDictionary?classDictionary[r.internal_class_id].classid:'???')
+        classEnrollmentDictionary[r.internal_class_id].enrollments.push({pid:r.person_id,classid:thisClassId,sid:studentInfoReferenceDictionary[r.person_id].sid})
+    })
+
+    return {studentDictionary,classEnrollmentDictionary,studentInfoReference}
+}
+
+
+export const updateFacStudents = async (theseFacStudentsAPI)=>{  // Only do Students
+    const theseStudentsDB = await getStudents()
+    const compareTheseFacStudentsAPI = theseFacStudentsAPI.map((r)=>{
+        r.grade=''+r.grade
+
+        return r
+    })
+
+    const comparedInfo = compareLists(theseFacStudentsAPI,theseStudentsDB,(r)=>r.pid,['sid','fname','lname','pname','grade'])
+    const currentUIDNooks = createUIDNooks(comparedInfo,'facstudents',(r)=>{return {pid:r.pid,sid:r.sid,fname:r.fname,pname:r.pname,lname:r.lname,grade:r.grade,type:'S'}}
+            ,(r)=>r.id,(r)=>r)
+
+    const uidNooksReturns = await uidNooks(currentUIDNooks)
+
+    return {theseFacStudentsAPI,theseStudentsDB,comparedInfo,currentUIDNooks,uidNooksReturns}
+}
+
+
+export const updateEnrollments = async (theseEnrollmentsAPI)=>{  // Only do Students
+    const theseEnrollmentsDB = await getClassEnrollments()
+    const partialData = theseEnrollmentsAPI
+
+    const comparedInfo = compareLists(partialData,theseEnrollmentsDB,(r)=>(`${r.classid}_${r.sid}`),[])  // see if empty array issues
+ 
+    const currentUIDNooks = createUIDNooks(comparedInfo,'class_enrollment',(r)=>{return {classid:r.classid,sid:r.sid}}
+            ,(r)=>r.id,(r)=>r)
+
+    const uidNooksReturns = await uidNooks(currentUIDNooks)
+    return {comparedInfo,currentUIDNooks,uidNooksReturns}
+}

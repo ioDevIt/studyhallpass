@@ -69,7 +69,7 @@ export const updateFacStudentsEnrollments = async () =>{
     // const currentStudyHallClasses =[]
     const classesUS = await getAllUSClassesBySchoolYear(2026)
     const classesUSSH = classesUS.filter((r)=>(r.class_id.substring(0,2)==='SH')).map((r)=>r.id)
-    const classIdsString = classesUSSH.join(';')
+    const classIdsString = classesUSSH.join('%3B')
     const theseUniqueStudentsSet = new Set()
     const enrollmentsData ={}    
 
@@ -80,7 +80,7 @@ export const updateFacStudentsEnrollments = async () =>{
         classIdsWithEnrollments.add(r.clint)
     })
  
-    const classesInfo = await getAllClassesByClint([...classIdsWithEnrollments].join(';'))
+    const classesInfo = await getAllClassesByClint([...classIdsWithEnrollments].join('%3B'))
     const classInfoDictionary ={}
 
     classesInfo.forEach((r)=>{
@@ -208,7 +208,7 @@ export const getEnrollments = async (useDB)=>{
     for(let i=0;i<currentEnrolledStudents.length;i+= batchSize)
     {
         const thisArray = currentEnrolledStudents.slice(i,i+batchSize)
-        studentInfoReference = studentInfoReference.concat(await getStudentsAPIInfoByID(thisArray.join(';')))  //currentEnrolledStudents.join(';'))
+        studentInfoReference = studentInfoReference.concat(await getStudentsAPIInfoByID(thisArray.join('%3B')))  //currentEnrolledStudents.join('%3B'))
     }
 
     usStudents.forEach((r)=>{
